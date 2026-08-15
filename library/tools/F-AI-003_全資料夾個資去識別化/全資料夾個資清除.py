@@ -9,7 +9,7 @@
 處理規則：
   姓名欄   → 測試案主001 ... （跨檔一致）
   身分證   → K000000001 ...
-  地址欄   → 苗栗縣測試市測試里X鄰測試路X號
+  地址欄   → 示範縣示範市示範里X鄰測試路X號
   電話欄   → 0912-001-000 ...
   聯絡人欄 → 測試聯絡人001 ...
 
@@ -74,7 +74,7 @@ def _fake(val: str, col_type: str) -> str:
     if col_type == "ADDR":
         if v not in _addr_map:
             n = len(_addr_map) + 1
-            _addr_map[v] = f"苗栗縣測試市測試里{n}鄰測試路{n}號"
+            _addr_map[v] = f"示範縣示範市示範里{n}鄰測試路{n}號"
         return _addr_map[v]
 
     if col_type == "PHONE":

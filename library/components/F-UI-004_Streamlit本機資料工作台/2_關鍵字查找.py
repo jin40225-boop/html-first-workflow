@@ -22,7 +22,7 @@ file_names = list(set([f["file_name"] for f in imported_files]))
 with st.form("search_form"):
     col1, col2 = st.columns(2)
     with col1:
-        keywords_input = st.text_input("輸入關鍵字 (多個關鍵字請以英文逗號分隔)", placeholder="例如：雙老家庭, 苗栗市")
+        keywords_input = st.text_input("輸入關鍵字 (多個關鍵字請以英文逗號分隔)", placeholder="例如：雙老家庭, 示範市")
         mode = st.selectbox("搜尋模式", [m.value for m in SearchMode], index=1)
         exclude_input = st.text_input("排除關鍵字 (多個以逗號分隔)", placeholder="選填")
     with col2:
