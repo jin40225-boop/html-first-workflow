@@ -48,13 +48,41 @@ Windows：
 git clone <this-repo> "$env:USERPROFILE\.claude\skills\html-first-workflow"
 ```
 
-裝完驗一下：
+裝完驗一下（會印出你裝的是哪一版）：
 
 ```bash
 python ~/.claude/skills/html-first-workflow/scripts/health_check.py
 ```
 
+輸出長這樣就對了：
+
+```
+Skill health check passed: /Users/you/.claude/skills/html-first-workflow
+版本：5c4a989 2026-08-15 (git)
+```
+
 技能整包自足，不依賴任何本機絕對路徑。文件裡的指令用 `$skill` 變數，裝在別處只要改那一行。
+
+## 升級（已經裝過舊版的人）
+
+```bash
+cd ~/.claude/skills/html-first-workflow && git pull && python scripts/health_check.py
+```
+
+Windows（PowerShell）：
+
+```powershell
+cd "$env:USERPROFILE\.claude\skills\html-first-workflow"; git pull; python scripts/health_check.py
+```
+
+跑完看「版本：」那一行的日期有沒有變新。**升級後要重開 Claude／Codex 的對話視窗**，技能是在對話開始時載入的。
+
+如果 `git pull` 說 `not a git repository`（當初是下載壓縮檔裝的），砍掉重裝：
+
+```bash
+rm -rf ~/.claude/skills/html-first-workflow
+git clone https://github.com/jin40225-boop/html-first-workflow.git ~/.claude/skills/html-first-workflow
+```
 
 ## 結構
 

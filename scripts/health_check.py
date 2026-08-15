@@ -14,6 +14,38 @@ def fail(message: str) -> int:
     return 1
 
 
+def installed_version() -> str:
+    """讓使用者自己看得到裝的是哪一版，不必回頭問人。
+
+    git clone 裝的讀 commit；下載壓縮檔裝的沒有 .git，改讀 VERSION。
+    """
+    import subprocess
+
+    def git(*args: str) -> str | None:
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(SKILL_DIR), *args],
+                capture_output=True, text=True, timeout=5,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return out.stdout.strip() if out.returncode == 0 else None
+
+    # git 會往上層目錄找 .git，所以要確認找到的就是技能自己這一層，
+    # 否則裝在別的 repo 底下時會報出外層專案的 commit——比沒有版本更糟。
+    toplevel = git("rev-parse", "--show-toplevel")
+    if toplevel and Path(toplevel).resolve() == SKILL_DIR:
+        head = git("log", "-1", "--format=%h %cs")
+        if head:
+            return f"{head} (git)"
+
+    version_file = SKILL_DIR / "VERSION"
+    if version_file.exists():
+        return version_file.read_text(encoding="utf-8").strip() + " (VERSION 檔)"
+    return ("未知（不是用 git clone 裝的，無法比對版本）"
+            "　→ 建議改用 git clone 重裝一次，之後才有辦法 git pull 升級")
+
+
 # 公開發佈的紅線：個資、真實地名、真實單位／人名。技術內容不在此列。
 FORBIDDEN = {
     "真實單位或人名": r"白露|whitedew|彥宇|剴剴|珍珠社",
@@ -109,6 +141,7 @@ def main() -> int:
         return fail("含未去識別化內容，不得公開發佈：\n  " + "\n  ".join(leaked))
 
     print(f"Skill health check passed: {SKILL_DIR}")
+    print(f"版本：{installed_version()}")
     return 0
 
 
