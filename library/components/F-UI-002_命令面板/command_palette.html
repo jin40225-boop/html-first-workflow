@@ -1,0 +1,87 @@
+{# 個案管理系統 · 暖意版 ⌘K Command Palette — 全域搜尋 / nav 跳轉 / 動作執行 #}
+{# 預設 display:none（不靠 Alpine x-show，避免 Alpine 異常時卡死） #}
+<div id="cmd-palette" class="cmd-palette-root" x-data="commandPalette()"
+     :class="{ 'is-open': isOpen }"
+     role="dialog"
+     aria-modal="true"
+     aria-label="命令面板">
+  <div class="cmd-palette-scrim" @click="close()" aria-label="關閉面板"></div>
+  <div class="cmd-palette-modal" @click.stop>
+    <button type="button" class="cmd-palette-close" @click="close()" aria-label="關閉">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+      </svg>
+    </button>
+    <div class="cmd-palette-input">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input type="text"
+             x-ref="search"
+             x-model="query"
+             @input.debounce.200ms="onSearch()"
+             @keydown.escape.prevent.stop="close()"
+             @keydown.arrow-down.prevent="selectNext()"
+             @keydown.arrow-up.prevent="selectPrev()"
+             @keydown.enter.prevent="executeSelected()"
+             placeholder="搜尋姓名／身分證／轉介單號／個案編號，或鍵入 &gt; 顯示動作"
+             autocomplete="off"
+             spellcheck="false"
+             aria-label="搜尋與命令">
+      <kbd class="cmd-kbd">ESC</kbd>
+    </div>
+
+    <div class="cmd-palette-results" x-ref="results">
+      <template x-if="query.length === 0">
+        <div class="cmd-empty">
+          <p class="ds-sm">輸入關鍵字搜尋案件、跳轉頁面、或執行常用動作。</p>
+          <p class="ds-xs faint" style="margin-top: 6px;">
+            提示：以 <kbd class="cmd-kbd">&gt;</kbd> 開頭只看動作；
+            <kbd class="cmd-kbd">↑</kbd><kbd class="cmd-kbd">↓</kbd> 移動，
+            <kbd class="cmd-kbd">Enter</kbd> 開啟。
+          </p>
+        </div>
+      </template>
+
+      <template x-for="(group, gi) in groups" :key="group.id">
+        <div class="cmd-group" x-show="group.items.length > 0">
+          <div class="cmd-group-label" x-text="group.label"></div>
+          <template x-for="(item, ii) in group.items" :key="item.id || item.label">
+            <a :href="item.href || '#'"
+               class="cmd-item"
+               :class="{ 'is-active': gi === selGroup && ii === selIdx }"
+               @mouseenter="selGroup = gi; selIdx = ii"
+               @click.prevent="executeItem(item)">
+              <span class="cmd-item-icon" x-html="item.icon || iconFor(group.id)"></span>
+              <span class="cmd-item-body">
+                <span class="cmd-item-label" x-text="item.label"></span>
+                <span class="cmd-item-meta" x-show="item.meta" x-text="item.meta"></span>
+              </span>
+              <span class="cmd-item-hint" x-show="item.hint" x-text="item.hint"></span>
+            </a>
+          </template>
+        </div>
+      </template>
+
+      <template x-if="query.length > 0 && totalCount === 0 && !loading">
+        <div class="cmd-empty">
+          <p class="ds-sm">沒有符合「<span x-text="query"></span>」的結果。</p>
+        </div>
+      </template>
+
+      <template x-if="loading">
+        <div class="cmd-empty"><p class="ds-sm faint">搜尋中⋯</p></div>
+      </template>
+    </div>
+
+    <div class="cmd-palette-foot">
+      <span><kbd class="cmd-kbd">↑</kbd><kbd class="cmd-kbd">↓</kbd> 移動</span>
+      <span><kbd class="cmd-kbd">Enter</kbd> 開啟</span>
+      <span><kbd class="cmd-kbd">Esc</kbd> 關閉</span>
+      <span style="margin-left: auto;" class="faint">⌘K / Ctrl+K 喚出</span>
+    </div>
+  </div>
+</div>

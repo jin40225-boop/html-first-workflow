@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-app); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .label { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 10px; letter-spacing: .04em; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border-strong); background: var(--bg-surface);
+    padding: 8px 16px; border-radius: var(--radius-pill);
+    font-weight: 500; font-size: var(--fs-sm); color: var(--fg-2);
+    cursor: pointer; transition: all 160ms;
+  }
+  .chip .n { color: var(--fg-faint); font-size: var(--fs-xs); }
+  .chip:hover { background: var(--orange-50); border-color: var(--orange-200); }
+  .chip.active-dark { background: var(--fg-1); color: #fff; border-color: var(--fg-1); }
+  .chip.active-dark .n { color: rgba(255,255,255,.6); }
+  .chip.active-brand { background: var(--orange-700); color: #fff; border-color: var(--orange-700); }
+  .chip.active-brand .n { color: rgba(255,255,255,.7); }
+
+  .sub { padding-left: 12px; border-left: 3px solid var(--orange-200); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .chip-sm {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border-strong); background: var(--bg-surface);
+    padding: 5px 12px; border-radius: var(--radius-pill);
+    font-size: var(--fs-xs); color: var(--fg-2); cursor: pointer;
+  }
+  .chip-sm.active { background: var(--orange-700); color: #fff; border-color: var(--orange-700); }
+  .chip-sm.active .n { color: rgba(255,255,255,.7); }
+  .chip-sm .n { color: var(--fg-faint); }
+</style>
+</head>
+<body>
+<p class="label">分級分頁</p>
+<div class="row">
+  <button class="chip active-brand">全部 <span class="n">150</span></button>
+  <button class="chip">一二級 <span class="n">42</span></button>
+  <button class="chip">三級 <span class="n">68</span></button>
+  <button class="chip">四級 <span class="n">40</span></button>
+</div>
+<p class="label">區域第一層 · 點擊後展開里村</p>
+<div class="row">
+  <button class="chip">全部區域 <span class="n">150</span></button>
+  <button class="chip active-dark">頭份市 <span class="n">42</span></button>
+  <button class="chip">竹南鎮 <span class="n">28</span></button>
+  <button class="chip">苗栗市 <span class="n">22</span></button>
+  <button class="chip">後龍鎮 <span class="n">14</span></button>
+</div>
+<div class="sub">
+  <button class="chip-sm active">全區 <span class="n">42</span></button>
+  <button class="chip-sm">尚順里 <span class="n">8</span></button>
+  <button class="chip-sm">中華里 <span class="n">12</span></button>
+  <button class="chip-sm">山下里 <span class="n">6</span></button>
+</div>
+</body>
+</html>

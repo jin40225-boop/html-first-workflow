@@ -1,0 +1,4 @@
+interface:
+  display_name: "HTML 先行工作流"
+  short_description: "See a clickable HTML mockup before anything gets generated"
+  default_prompt: "Use $html-first-workflow to design, build, migrate, validate, and evolve a software or web project. Always show a clickable HTML mockup before generating: a review console for the user to mark up, or a high-fidelity client demo."

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-surface); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .label { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 12px; font-family: var(--font-mono); letter-spacing: .04em; }
+  .row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .bar { background: var(--orange-700); height: 16px; border-radius: var(--radius-xs); }
+  .name { width: 110px; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-2); }
+  .px { color: var(--fg-muted); font-size: var(--fs-xs); font-family: var(--font-mono); margin-left: 8px; }
+</style>
+</head>
+<body>
+<p class="label">SPACING · 4px 階梯（不變）；卡片 / 行間距預設較舊版更開鬆</p>
+<div class="row"><span class="name">space-1</span><div class="bar" style="width:4px"></div><span class="px">4px · p-1</span></div>
+<div class="row"><span class="name">space-2</span><div class="bar" style="width:8px"></div><span class="px">8px · gap-2</span></div>
+<div class="row"><span class="name">space-3</span><div class="bar" style="width:12px"></div><span class="px">12px · py-3</span></div>
+<div class="row"><span class="name">space-4</span><div class="bar" style="width:16px"></div><span class="px">16px · p-4 預設 padding</span></div>
+<div class="row"><span class="name">space-5</span><div class="bar" style="width:20px"></div><span class="px">20px · py-5 main</span></div>
+<div class="row"><span class="name">space-6</span><div class="bar" style="width:24px"></div><span class="px">24px · py-6</span></div>
+<div class="row"><span class="name">space-8</span><div class="bar" style="width:32px"></div><span class="px">32px · 區段大間距</span></div>
+</body>
+</html>

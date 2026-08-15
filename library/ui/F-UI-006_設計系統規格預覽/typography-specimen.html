@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-surface); font-family: var(--font-sans); }
+  .specimen { padding: 16px 20px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 14px; background: var(--bg-surface); }
+  .specimen .l { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 10px; font-family: var(--font-mono); letter-spacing: .04em; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; background: var(--bg-surface); }
+  .kpi-label { font-size: var(--fs-sm); color: var(--fg-muted); font-weight: 500; }
+  .kpi-value { font-size: var(--fs-2xl); font-weight: 700; margin-top: 6px; color: var(--fg-1); letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .kpi-value.warn { color: var(--warn-700); }
+  .kpi-value.danger { color: var(--danger-700); }
+  .kpi.tone-warn { background: linear-gradient(180deg, var(--warn-50) 0%, var(--bg-surface) 80%); border-color: var(--warn-200); }
+  .kpi.tone-danger { background: linear-gradient(180deg, var(--danger-50) 0%, var(--bg-surface) 80%); border-color: var(--danger-200); }
+</style>
+</head>
+<body>
+  <div class="specimen">
+    <p class="l">KPI · 數據卡 (fs-2xl 38px / 700)</p>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">全庫個案</div><div class="kpi-value">150</div></div>
+      <div class="kpi tone-danger"><div class="kpi-label">待確認派案</div><div class="kpi-value danger">7</div></div>
+      <div class="kpi tone-warn"><div class="kpi-label">不完整案件</div><div class="kpi-value warn">12</div></div>
+      <div class="kpi"><div class="kpi-label">家庭風險</div><div class="kpi-value">3</div></div>
+    </div>
+  </div>
+  <div class="specimen">
+    <p class="l">字符組合 · 系統字</p>
+    <div style="font-size: var(--fs-xl); font-weight: 600; color: var(--fg-1);">身心障礙個案管理系統 · The quick brown fox</div>
+    <div style="font-size: var(--fs-base); color: var(--fg-2); margin-top:6px;">社工：陳雅婷 · 派案池：高優先 · 在案 10 · 0123456789</div>
+    <div style="font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-3); margin-top:6px;">CA0099_0042 · A123456789 · 2026-05-18</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,179 @@
+/*
+ * Warm Design System — Colors & Typography（暖意版）
+ *
+ * 主視覺：暖米底 + 赭土紅 + 柔和圓角 + 大字。
+ * 字級主要落在 16–20px；KPI 38px。資料密度仍可緊湊，但呼吸更開。
+ * 一律使用系統字 + ui-monospace。
+ *
+ * 本檔保留 暖色設計系統所有原 token 名稱，僅重新指派為暖意版本的數值，
+ * 讓既有的 utility class / 文件 / preview 不需改名即可對齊。
+ */
+
+:root {
+  /* ── 中性 (warm cream / ink) ─────────────────────────────────── */
+  --bg-app:        #fbf6ef;   /* warm cream — body bg (worker) */
+  --bg-app-admin:  #f6efe1;   /* deeper cream — body bg (admin) */
+  --bg-surface:    #ffffff;   /* card / table / modal panel */
+  --bg-surface-2:  #fdf6e9;   /* soft cream — chip / table head light */
+  --bg-surface-3:  #f4ead7;   /* warm tint — inline-code / mono bg */
+  --bg-emphasis:   #2d251a;   /* warm dark — dark table head */
+
+  --fg-1:          #2d251a;   /* warm ink — primary text */
+  --fg-2:          #50412e;   /* body */
+  --fg-3:          #7a6953;   /* secondary */
+  --fg-muted:      #a0917a;   /* meta / placeholder */
+  --fg-faint:      #c2b59c;   /* disabled / hint */
+  --fg-on-dark:    #fbf6ef;   /* on warm-dark surfaces */
+
+  --border:        #ecdfca;   /* warm border — default */
+  --border-strong: #e1d2b8;   /* button border / divider */
+  --border-dashed: #f4ead7;   /* inner dashed */
+
+  /* ── sky 群組 (info / connection) — 重新指派為「暖暮藍」 ─── */
+  --sky-50:  #f0f7fb;
+  --sky-100: #e2eef6;
+  --sky-200: #c9dde9;
+  --sky-300: #a0c3da;
+  --sky-500: #6da3c5;
+  --sky-600: #4f8cb8;        /* link */
+  --sky-700: #3e7aa3;        /* link hover / active chip */
+
+  /* ── 語意：success / warn / danger — 暖色版本 ────────────── */
+  --success-50:  #ecf7ef;
+  --success-100: #dcefe1;
+  --success-200: #c0e2c8;
+  --success-400: #6fb585;
+  --success-600: #4e9d6c;    /* status-active main */
+  --success-700: #357341;
+  --success-800: #2b5e34;
+  --success-900: #1f4527;
+
+  --warn-50:   #fdf1de;
+  --warn-100:  #fbe6c8;
+  --warn-200:  #f6cf95;
+  --warn-300:  #f1b76b;
+  --warn-400:  #ed9f42;
+  --warn-500:  #e89545;      /* status-pending main */
+  --warn-700:  #b06e1d;
+  --warn-800:  #8c560f;
+  --warn-900:  #66400a;      /* status-pending text */
+
+  --danger-50:  #fbeae6;
+  --danger-100: #f6d8d3;
+  --danger-200: #ecbab2;
+  --danger-300: #de9388;
+  --danger-500: #c75c4d;     /* danger main */
+  --danger-600: #b04d3f;
+  --danger-700: #a83a2c;     /* grade-1 / danger text */
+  --danger-800: #8b2c20;
+
+  --info-50:  #f0f7fb;       /* grade-4 bg */
+  --info-200: #c9dde9;
+  --info-300: #a0c3da;
+  --info-600: #4f8cb8;       /* merge action */
+  --info-700: #3e7aa3;
+  --info-800: #2f6595;       /* grade-4 text */
+
+  --grape-50:  #f4ecf9;
+  --grape-200: #d2c1de;
+  --grape-700: #6b4a8b;      /* grade-special / assign log */
+
+  /* ── orange 群組 — 主視覺 (terracotta 赭土) ─────────────── */
+  --orange-50:  #fdf0e6;
+  --orange-200: #f4c9aa;
+  --orange-300: #ec9b6c;
+  --orange-700: #d97757;     /* primary brand (terracotta) — 取代原 sky */
+  --orange-800: #c5613f;     /* brand-2 */
+
+  /* ── 個案分級色 (semantic, derived) — 紅 / 橘 / 綠 / 藍 / 紫 ─ */
+  --grade-1-bg: var(--danger-50);   --grade-1-fg: var(--danger-700);  --grade-1-bd: var(--danger-200);
+  --grade-2-bg: var(--warn-50);     --grade-2-fg: var(--warn-700);    --grade-2-bd: var(--warn-200);
+  --grade-3-bg: var(--success-50);  --grade-3-fg: var(--success-700); --grade-3-bd: var(--success-200);
+  --grade-4-bg: var(--info-50);     --grade-4-fg: var(--info-800);    --grade-4-bd: var(--info-200);
+  --grade-sp-bg: var(--grape-50);   --grade-sp-fg: var(--grape-700);  --grade-sp-bd: var(--grape-200);
+  --grade-no-bg: var(--bg-surface-2); --grade-no-fg: var(--fg-muted); --grade-no-bd: var(--border);
+
+  /* ── 圖表 (ECharts) — 暖色為主，灰退到輔助 ───────────────── */
+  --chart-1:  #d97757;       /* terracotta — 主序列 */
+  --chart-2:  #4e9d6c;       /* warm green */
+  --chart-3:  #e89545;       /* warm amber */
+  --chart-4:  #c75c4d;       /* warm danger */
+  --chart-5:  #9876a8;       /* warm grape */
+  --chart-6:  #4f8cb8;       /* warm dusk blue */
+  --chart-7:  #6a8f5a;       /* sage */
+  --chart-8:  #a0917a;       /* warm neutral */
+  --chart-grid: #ecdfca;
+  --chart-axis: #a0917a;
+
+  /* ── 字型（系統字；不引入 webfont） ───────────────────────── */
+  --font-sans:
+    "PingFang TC", "Microsoft JhengHei", "Noto Sans TC",
+    -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* ── 字級（大幅放大；適合高齡 / 視力不佳） ─────────────── */
+  --fs-2xs:  12px;     /* tiny meta */
+  --fs-xs:   14px;     /* meta / table head / badge / mono code */
+  --fs-sm:   16px;     /* secondary body / button sm */
+  --fs-base: 18px;     /* primary body / button / table cell */
+  --fs-lg:   22px;     /* section heading / drawer subtitle */
+  --fs-xl:   28px;     /* page heading */
+  --fs-2xl:  38px;     /* KPI 數字 */
+
+  --leading-tight:  1.25;
+  --leading-snug:   1.4;
+  --leading-normal: 1.55;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ── 邊框與圓角（從硬 2px 升級至柔和 10–22px） ───────────── */
+  --radius-none: 0;
+  --radius-xs:   6px;        /* tag / inline chip */
+  --radius-sm:   10px;       /* button / input / small card */
+  --radius-md:   16px;       /* card / panel */
+  --radius-pill: 9999px;     /* chip / badge / nav-pill / notification dot */
+
+  /* ── 陰影（暖色柔光） ───────────────────────────────────── */
+  --shadow-none: 0 0 #0000;
+  --shadow-sm:   0 1px 2px rgba(70, 50, 25, 0.04);
+  --shadow-card: 0 4px 14px rgba(70, 50, 25, 0.06), 0 1px 2px rgba(70, 50, 25, 0.03);
+  --shadow-pop:  0 12px 28px rgba(70, 50, 25, 0.10), 0 4px 12px rgba(70, 50, 25, 0.06);   /* 下拉 / 搜尋結果 */
+  --shadow-modal: 0 28px 56px rgba(70, 50, 25, 0.18), 0 8px 16px rgba(70, 50, 25, 0.10);  /* drawer / modal */
+
+  /* ── 間距（沿用 4px 階；但卡片內距預設更開） ─────────── */
+  --space-0:  0;
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+
+  /* ── 互動 ───────────────────────────────────────────────────── */
+  --transition-fast: 160ms;
+  --transition-base: 280ms;
+  --focus-ring: 0 0 0 4px rgba(217, 119, 87, 0.18);
+}
+
+/* ────────────────────────────────────────────────────────────────
+ * Semantic typography — 直接使用的 utility class
+ * ──────────────────────────────────────────────────────────────── */
+
+html, body { font-family: var(--font-sans); color: var(--fg-1); -webkit-font-smoothing: antialiased; font-feature-settings: "palt"; }
+
+.ds-h1   { font-size: var(--fs-xl);  font-weight: var(--weight-bold);     line-height: var(--leading-snug); color: var(--fg-1); letter-spacing: -0.01em; }
+.ds-h2   { font-size: var(--fs-lg);  font-weight: var(--weight-semibold); line-height: var(--leading-snug); color: var(--fg-1); }
+.ds-h3   { font-size: var(--fs-base);font-weight: var(--weight-semibold); color: var(--fg-1); }
+.ds-meta { font-size: var(--fs-sm);  color: var(--fg-muted); line-height: var(--leading-normal); }
+.ds-body { font-size: var(--fs-base);color: var(--fg-2);    line-height: var(--leading-normal); }
+.ds-xs   { font-size: var(--fs-xs);  color: var(--fg-muted); }
+.ds-kpi  { font-size: var(--fs-2xl); font-weight: var(--weight-bold);     color: var(--fg-1); letter-spacing: -0.02em; }
+.ds-mono { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-3); }
+.ds-label{ font-size: var(--fs-xs); font-weight: var(--weight-semibold); letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }

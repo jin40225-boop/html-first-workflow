@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{系統名稱}}｜離線示範</title>
+<!--
+  ═══════════════════════════════════════════════════════════════
+  軌道 A｜客戶展示頁　骨架（純佔位，不含任何專案內容）
+  寫作指引：references/client-demo.md
+  品質基準：assets/office-vba-demo.golden.html（只看擬真度，不看程式衛生）
+
+  ★ 這份骨架提供的是「技法」，不是「內容」。裡面每一段 {{}} 都要換掉。
+    已經接好、可以直接沿用的技法：
+      · 擬真外殼（標題列／側欄／KPI／表格／明細展開）
+      · 三個可切換的完整檢視（對應金標樣本的 Excel↔Word 切換）
+      · 原生風格對話框（Esc 可關、z-index 低於導覽）
+      · 四態狀態機＋退回分支＋改派重跑
+      · 狀態擴散（一個動作連動改多處：主表／KPI／第二檢視／彙總表）
+      · 第二視角面板（手機殼或另一個角色的畫面）
+      · 導覽模式（聚光燈＋旁白＋自動執行，5–8 步）
+      · 真的在做事：CSV 匯出（欄位包引號、含 BOM、含合計列）
+      · 鍵盤可用、可列印、深淺色可切且記憶、響應式（手機側欄變頁籤）
+      · 低調的示範標示＋頁尾完整聲明
+
+  ★ 必改：<title>、標題列品牌與配色（--brand 群組）、三個檢視的內容、
+    STATES 的狀態名、STEPS 的導覽腳本、頁尾聲明裡的系統名。
+  ★ 鐵律：示範資料一律虛構且要「擬真級」；手機號中間三碼一律 000；
+    不得對可能撞名真實商家的對象掛負面營運數據。
+  ═══════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  /* ★ 改這一組就換皮膚。要模仿被展示的那個系統，不要套自己的品牌色 */
+  --brand:#2b6cb0; --brand-dk:#245a94; --brand-ink:#fff;
+  --bg:#eceff1; --panel:#fff; --panel-2:#f6f8f9; --ink:#191d21; --ink-2:#69747f;
+  --line:#e2e7eb; --line-2:#ccd5db;
+  --s1:#8b93a0; --s1-bg:#eef1f3;      /* 狀態一：待處理 */
+  --s2:#1f6fb8; --s2-bg:#e6f0fa;      /* 狀態二：已送出 */
+  --s3:#0d8a4f; --s3-bg:#e4f4ec;      /* 狀態三：已接收 */
+  --s4:#6b4bb8; --s4-bg:#efe9fa;      /* 狀態四：已完成 */
+  --sx:#c0392b; --sx-bg:#fbeae8;      /* 退回 */
+  --side:#8CABC0; --bub:#fff; --bub-me:#9ede63;
+  --shadow:0 1px 2px rgba(20,30,40,.06),0 6px 20px rgba(20,30,40,.08); --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14171a; --panel:#1d2125; --panel-2:#252a2f; --ink:#e9eef2; --ink-2:#98a3ae;
+  --line:#2e343a; --line-2:#3c444c;
+  --s1:#98a3ae; --s1-bg:#252a2f; --s2:#6aa9e0; --s2-bg:#19293a;
+  --s3:#5cc48c; --s3-bg:#152f1e; --s4:#a58ae0; --s4-bg:#231c37; --sx:#e8776a; --sx-bg:#321b19;
+  --side:#232a30; --bub:#313a42; --bub-me:#4a7a3a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.42);
+}}
+:root[data-theme="dark"]{
+  --bg:#14171a; --panel:#1d2125; --panel-2:#252a2f; --ink:#e9eef2; --ink-2:#98a3ae;
+  --line:#2e343a; --line-2:#3c444c;
+  --s1:#98a3ae; --s1-bg:#252a2f; --s2:#6aa9e0; --s2-bg:#19293a;
+  --s3:#5cc48c; --s3-bg:#152f1e; --s4:#a58ae0; --s4-bg:#231c37; --sx:#e8776a; --sx-bg:#321b19;
+  --side:#232a30; --bub:#313a42; --bub-me:#4a7a3a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;font-size:15px;line-height:1.6}
+button{font:inherit;cursor:pointer}
+
+.topbar{background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;height:50px;padding:0 16px;gap:14px;position:sticky;top:0;z-index:25}
+.logo{font-weight:700;font-size:16px;display:flex;align-items:center;gap:9px;letter-spacing:.02em}
+.logo .m{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.24);display:grid;place-items:center;font-size:13px}
+.topright{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:13px}
+.who{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:99px;display:flex;align-items:center;gap:7px}
+.who .av{width:19px;height:19px;border-radius:50%;background:#fff;color:var(--brand-dk);display:grid;place-items:center;font-size:11px;font-weight:700}
+.gh{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;font-size:13px;padding:4px 10px;border-radius:7px}
+.gh:hover{background:rgba(255,255,255,.16)}
+
+/* 示範標示：融進介面，不要用紅色大橫幅擋在最上面 */
+.demobar{background:#fff8e1;border-bottom:1px solid #e6cf85;color:#6a5211;font-size:12.5px;padding:6px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .demobar{background:#2d2915;border-color:#574a1c;color:#dcc677}}
+:root[data-theme="dark"] .demobar{background:#2d2915;border-color:#574a1c;color:#dcc677}
+.demobar .sp{margin-left:auto;display:flex;gap:8px}
+.demobar button{font-size:12.5px;border:1px solid currentColor;background:transparent;color:inherit;padding:3px 12px;border-radius:99px}
+.demobar button:hover{background:rgba(0,0,0,.07)}
+
+.shell{display:grid;grid-template-columns:186px 1fr 366px;max-width:1440px;margin:0 auto;min-height:calc(100vh - 78px)}
+@media (max-width:1180px){.shell{grid-template-columns:186px 1fr}.sidepanelwrap{grid-column:1/-1;padding:0 16px 24px}}
+/* 手機：側欄不能直接藏（藏了另外兩個檢視就永遠到不了），改成橫向頁籤 */
+@media (max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);
+        display:flex;gap:6px;overflow-x:auto;padding:9px 12px}
+  .side .grp{display:none}
+  .side a{white-space:nowrap;padding:7px 13px;font-size:13.5px}
+  .side a .n{margin-left:6px}
+}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:14px 10px;position:sticky;top:78px;align-self:start;height:calc(100vh - 78px)}
+.side .grp{font-size:11.5px;color:var(--ink-2);letter-spacing:.08em;padding:10px 10px 5px}
+.side a{display:flex;align-items:center;gap:10px;padding:8px 11px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px;cursor:pointer}
+.side a .ic{width:18px;text-align:center;opacity:.75}
+.side a:hover{background:var(--panel-2)}
+.side a.on{background:var(--brand);color:#fff;font-weight:600}
+.side a.on .ic{opacity:1}
+.side .n{margin-left:auto;font-size:11.5px;background:var(--panel-2);color:var(--ink-2);border-radius:99px;padding:0 7px}
+.side a.on .n{background:rgba(255,255,255,.25);color:#fff}
+.side a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.stage{padding:18px 20px 50px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
+.kpi .lab{font-size:12px;color:var(--ink-2)} .kpi .val{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.35}
+.kpi .sub{font-size:11.5px;color:var(--ink-2)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+.phead{padding:11px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.phead h2{margin:0;font-size:15px} .phead .sub{font-size:12.5px;color:var(--ink-2)}
+.phead .right{margin-left:auto;display:flex;gap:7px}
+.chipbtn{font-size:12.5px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink-2);padding:4px 13px;border-radius:99px}
+.chipbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.chipbtn:hover{border-color:var(--brand)}
+
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{background:var(--panel-2);color:var(--ink-2);font-size:12px;font-weight:600;text-align:left;padding:8px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.t tbody tr[data-row]{cursor:pointer}
+table.t tbody tr[data-row]:hover,table.t tr.open{background:var(--panel-2)}
+table.t tbody tr[data-row]:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+table.t tr.detail>td{padding:0;border-bottom:1px solid var(--line)}
+table.t tr.detail .inner{padding:12px 16px 15px;font-size:13px;color:var(--ink-2);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){table.t tr.detail .inner{grid-template-columns:1fr}}
+.no{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink-2)}
+.who2{font-weight:600} .sm{font-size:12.5px;color:var(--ink-2)}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.badge{display:inline-block;font-size:11.5px;padding:2px 10px;border-radius:99px;font-weight:600;white-space:nowrap}
+.b-s1{background:var(--s1-bg);color:var(--s1)} .b-s2{background:var(--s2-bg);color:var(--s2)}
+.b-s3{background:var(--s3-bg);color:var(--s3)} .b-s4{background:var(--s4-bg);color:var(--s4)}
+.b-sx{background:var(--sx-bg);color:var(--sx)}
+.act{font-size:13px;border:1px solid var(--brand);background:var(--brand);color:#fff;padding:5px 14px;border-radius:7px;white-space:nowrap}
+.act:hover{background:var(--brand-dk)}
+.act[disabled]{background:var(--panel-2);border-color:var(--line-2);color:var(--ink-2);cursor:default}
+.act.alt{background:transparent;color:var(--brand)} .act.alt:hover{background:var(--panel-2)}
+
+.tl{list-style:none;margin:0;padding:0 0 0 16px;border-left:2px solid var(--line)}
+.tl li{position:relative;padding:3px 0;color:var(--ink-2);font-size:13px}
+.tl li::before{content:"";position:absolute;left:-21px;top:11px;width:8px;height:8px;border-radius:50%;background:var(--line-2)}
+.tl li.hit{color:var(--ink)} .tl li.hit::before{background:var(--brand)}
+.tl time{font-variant-numeric:tabular-nums;margin-left:7px;font-size:12.5px;color:var(--ink-2)}
+
+.cards2{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px;padding:14px 16px}
+.c2{border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;background:var(--panel-2)}
+.c2 h3{margin:0 0 2px;font-size:14.5px}
+.c2 .addr{font-size:12px;color:var(--ink-2);margin-bottom:9px}
+.c2 dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:12.5px;color:var(--ink-2)}
+.c2 dd{margin:0;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+.c2 .st{margin-top:9px;font-size:12px}
+
+/* ── 第二視角：手機殼。若你的案子第二視角不是手機，整塊換掉即可 ── */
+.sidepanelwrap{padding:18px 20px 40px}
+.phone{background:#1a1e22;border-radius:38px;padding:11px;box-shadow:0 10px 34px rgba(0,0,0,.28);position:sticky;top:96px;max-width:340px;margin:0 auto;border:1px solid #2c3238}
+.screen{background:var(--side);border-radius:28px;overflow:hidden;display:flex;flex-direction:column;height:626px;position:relative}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:22px;background:#1a1e22;border-radius:0 0 14px 14px;z-index:5}
+.sysbar{background:var(--brand);color:#fff;display:flex;align-items:center;padding:7px 16px 3px;font-size:12px;font-variant-numeric:tabular-nums}
+.sysbar .t{font-weight:600} .sysbar .icons{margin-left:auto;display:flex;gap:5px;align-items:center;letter-spacing:-.5px}
+.batt{display:inline-block;width:20px;height:10px;border:1px solid #fff;border-radius:2.5px;position:relative;opacity:.9}
+.batt::after{content:"";position:absolute;right:-3px;top:2.5px;width:2px;height:4px;background:#fff;border-radius:0 1px 1px 0}
+.batt i{position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:11px;background:#fff;border-radius:1px}
+.abar{background:var(--brand);color:#fff;padding:5px 12px 10px;display:flex;align-items:center;gap:10px}
+.abar .bk{font-size:19px;opacity:.9;line-height:1}
+.abar .av{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--brand-dk);display:grid;place-items:center;font-weight:700;font-size:13px}
+.abar .nm{font-size:14.5px;font-weight:600;line-height:1.25}
+.abar .nm small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.abar .mn{margin-left:auto;display:flex;gap:13px;font-size:15px;opacity:.9}
+.chat{flex:1;overflow-y:auto;padding:12px 11px 8px;display:flex;flex-direction:column;gap:9px}
+.day{align-self:center;background:rgba(0,0,0,.2);color:#fff;font-size:11px;padding:2px 13px;border-radius:99px}
+.msg{max-width:84%;align-self:flex-start;display:flex;gap:7px;align-items:flex-end}
+.msg .ava{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--brand-dk);display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg .body{min-width:0}
+.msg .stamp{font-size:10.5px;color:rgba(255,255,255,.9);align-self:flex-end;white-space:nowrap;line-height:1.3}
+.msg .stamp .rd{display:block;font-size:10px;opacity:.9}
+.bub{background:var(--bub);padding:8px 12px;border-radius:16px;border-top-left-radius:4px;font-size:13.5px;box-shadow:0 1px 2px rgba(0,0,0,.16);color:var(--ink)}
+.msg.me .bub{background:var(--bub-me);border-top-left-radius:16px;border-top-right-radius:4px;color:#16210f}
+:root[data-theme="dark"] .msg.me .bub{color:#e9f5df}
+.cardmsg{background:var(--bub);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.2);width:242px}
+.cardmsg .hero{background:var(--brand);color:#fff;padding:9px 13px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.cardmsg .bd{padding:11px 13px;font-size:13px;color:var(--ink)}
+.cardmsg .bd .ttl{font-weight:700;font-size:14px;margin-bottom:7px}
+.cardmsg .bd dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 11px}
+.cardmsg .bd dt{color:var(--ink-2);font-size:12px} .cardmsg .bd dd{margin:0;font-size:12.5px}
+.cardmsg .bd .tot{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-weight:700;font-size:14px}
+.cardmsg .ft{display:flex;border-top:1px solid var(--line)}
+.cardmsg .ft button{flex:1;font-size:13px;font-weight:600;border:0;background:transparent;color:var(--brand);padding:10px 0;border-right:1px solid var(--line)}
+.cardmsg .ft button:last-child{border-right:0} .cardmsg .ft button.warn{color:var(--sx)}
+.cardmsg .ft button:hover{background:var(--panel-2)}
+.cardmsg .ft button[disabled]{color:var(--ink-2);background:var(--panel-2);cursor:default}
+.qr{display:flex;gap:6px;padding:8px 11px;overflow-x:auto;background:rgba(0,0,0,.1)}
+.qr button{font-size:12.5px;white-space:nowrap;border:1px solid rgba(255,255,255,.65);background:rgba(255,255,255,.94);color:#191d21;padding:5px 13px;border-radius:99px}
+.qr button:hover{background:#fff}
+.inbar{display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--panel);border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+.inbar .box{flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:99px;padding:6px 13px}
+
+#spot{position:fixed;inset:0;z-index:60;display:none;pointer-events:none}
+#spot .hole{position:absolute;border-radius:12px;box-shadow:0 0 0 9999px rgba(10,14,18,.58);transition:.35s cubic-bezier(.4,0,.2,1)}
+#spot .tip{position:absolute;background:var(--panel);color:var(--ink);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);padding:14px 16px;max-width:330px;pointer-events:auto;transition:.35s cubic-bezier(.4,0,.2,1)}
+#spot .tip b{display:block;font-size:14.5px;margin-bottom:4px}
+#spot .tip p{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.65}
+#spot .tip .row{display:flex;align-items:center;gap:8px;margin-top:12px}
+#spot .tip .n{font-size:12.5px;color:var(--ink-2);margin-right:auto;font-variant-numeric:tabular-nums}
+#spot .tip button{font-size:13px;border-radius:7px;padding:5px 13px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink)}
+#spot .tip button.go{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* z-index 必須低於 #spot(60)，否則導覽走到對話框那步時聚光燈與旁白會被遮住 */
+#modal{position:fixed;inset:0;background:rgba(10,14,18,.45);display:none;align-items:center;justify-content:center;z-index:55;padding:20px}
+#modal .dlg{background:var(--panel);border-radius:var(--r);box-shadow:0 12px 40px rgba(0,0,0,.35);width:394px;max-width:100%;overflow:hidden}
+#modal h3{margin:0;padding:12px 17px;background:var(--panel-2);border-bottom:1px solid var(--line);font-size:14.5px}
+#modal .c{padding:16px 17px;font-size:14px}
+#modal label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:5px}
+#modal select,#modal input{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line-2);border-radius:7px;background:var(--panel-2);color:var(--ink)}
+#modal .hint{font-size:12.5px;color:var(--ink-2);margin-top:9px}
+#modal .a{padding:0 17px 16px;display:flex;justify-content:flex-end;gap:8px}
+#modal .a button{font-size:13.5px;padding:7px 17px;border-radius:7px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink)}
+#modal .a button.go{background:var(--brand);border-color:var(--brand);color:#fff}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);background:#191d21;color:#fff;padding:10px 20px;border-radius:99px;font-size:13.5px;opacity:0;pointer-events:none;transition:.24s;z-index:70;box-shadow:var(--shadow)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+footer{max-width:1440px;margin:0 auto;padding:0 20px 36px;font-size:12.5px;color:var(--ink-2);line-height:1.8}
+footer .decl{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 17px}
+.hidden{display:none}
+
+@media print{
+  .demobar .sp,.gh,#spot,#toast,#modal,.qr,.cardmsg .ft,.inbar,.side{display:none}
+  body{background:#fff}.shell{grid-template-columns:1fr}
+  .phone{position:static;box-shadow:none;height:auto}.screen{height:auto}
+  .panel,.phone{break-inside:avoid}
+  /* 收合的內容要攤開，但必須用對的 display——明細是 <tr>，用 block 會讓欄位崩掉 */
+  tr.detail.hidden{display:table-row!important}
+  #v-b.hidden,#v-c.hidden{display:block!important}
+  #v-na{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 擬真外殼：模仿被展示的那個系統，不要套自己的品牌 ══ -->
+<div class="topbar">
+  <span class="logo"><span class="m">{{標}}</span>{{系統名稱}}　{{子標題}}</span>
+  <div class="topright">
+    <span class="who"><span class="av">{{人}}</span>{{目前身分}}</span>
+    <button class="gh" id="btnTheme" title="深淺色">◐</button>
+  </div>
+</div>
+
+<div class="demobar">
+  <b>離線示範</b>　{{不會真的送出／不會寫入任何資料}}，所有{{名稱、金額、時間}}均為虛構。
+  <span class="sp"><button id="btnTour">▶ 播放示範</button><button id="btnReset">重設</button></span>
+</div>
+
+<div class="shell">
+  <!-- ══ 側欄：三個檢視。對應金標樣本的 Excel↔Word 整組切換 ══ -->
+  <nav class="side" id="side">
+    <div class="grp">{{主分類}}</div>
+    <a class="on" data-view="a"><span class="ic">▤</span>{{檢視一}}<span class="n">{{5}}</span></a>
+    <a data-view="b"><span class="ic">◉</span>{{檢視二}}<span class="n">{{6}}</span></a>
+    <a data-view="c"><span class="ic">≡</span>{{檢視三}}</a>
+    <div class="grp">{{次分類}}</div>
+    <a data-view="na"><span class="ic">⚙</span>{{未開放項目}}</a>
+    <a data-view="na"><span class="ic">◷</span>{{未開放項目}}</a>
+  </nav>
+
+  <div class="stage">
+
+    <!-- ─ 檢視一：主表 ─ -->
+    <div id="v-a">
+      <div class="kpis">
+        <div class="kpi"><div class="lab">{{指標一}}</div><div class="val">{{5}}</div><div class="sub">{{附註}}</div></div>
+        <div class="kpi"><div class="lab">{{指標二}}</div><div class="val" id="kPend">{{1}}</div><div class="sub">{{會隨操作變動}}</div></div>
+        <div class="kpi"><div class="lab">{{指標三}}</div><div class="val"><span id="kAvg">{{3.4}}</span><span style="font-size:14px"> {{單位}}</span></div><div class="sub">{{對照值}}</div></div>
+        <div class="kpi"><div class="lab">{{指標四}}</div><div class="val"><span id="kRej">{{4}}</span><span style="font-size:14px"> %</span></div><div class="sub">{{期間}}</div></div>
+      </div>
+
+      <div class="panel" id="panelMain">
+        <div class="phead"><h2>{{主表標題}}</h2><span class="sub">{{日期}}</span>
+          <div class="right"><button class="chipbtn on">{{全部}}</button><button class="chipbtn">{{篩選}}</button></div>
+        </div>
+        <table class="t">
+          <thead><tr><th>{{編號}}</th><th>{{對象}}</th><th>{{內容}}</th><th class="num">{{數值}}</th><th>狀態</th><th></th></tr></thead>
+          <tbody>
+            <!-- 至少放 4–5 列。主線那一列給 id="rowMain"，其餘用不同狀態做出「真的在運作」的樣子 -->
+            <tr data-row="1"><td class="no">{{編號-001}}</td>
+              <td><span class="who2">{{對象名稱}}</span><div class="sm">{{附屬資訊}}</div></td>
+              <td class="sm">{{內容摘要}}</td><td class="num">{{數值}}</td>
+              <td><span class="badge b-s4">{{已完成}}</span></td><td><button class="act alt" disabled>{{已完成}}</button></td></tr>
+            <tr class="detail hidden" data-det="1"><td colspan="6"><div class="inner">
+              <div><b>時間軸</b><ul class="tl"><li class="hit">{{建立}}<time>{{10:38}}</time></li><li class="hit">{{送出}}<time>{{10:39}}</time></li><li class="hit">{{接收}}<time>{{10:42}}</time></li><li class="hit">{{完成}}<time>{{11:05}}</time></li></ul></div>
+              <div><b>備註</b><br>{{不要寫成會跟示範時鐘打架的內容，例如「8 分鐘後會自動提醒」}}</div>
+            </div></td></tr>
+
+            <tr data-row="2" id="rowMain"><td class="no">{{編號-003}}</td>
+              <td><span class="who2" id="mainWho">{{主線對象}}</span><div class="sm">{{附屬資訊}}</div></td>
+              <td class="sm">{{內容摘要}}</td><td class="num">{{數值}}</td>
+              <td><span class="badge b-s1" id="mainBadge">{{待處理}}</span></td>
+              <td><button class="act" id="btnSend">{{送出}}</button></td></tr>
+            <tr class="detail hidden" data-det="2"><td colspan="6"><div class="inner">
+              <div><b>時間軸</b><ul class="tl" id="mainTL">
+                <li class="hit" data-s="build">{{建立}}<time>{{11:47}}</time></li>
+                <li data-s="sent">{{送出}}<time data-t></time></li>
+                <li data-s="take">{{接收}}<time data-t></time></li>
+                <li data-s="done">{{完成}}<time data-t></time></li></ul></div>
+              <div><b>備註</b><br>{{主線這一單的細節}}</div>
+            </div></td></tr>
+
+            <tr data-row="3"><td class="no">{{編號-005}}</td>
+              <td><span class="who2">{{對象名稱}}</span><div class="sm">{{附屬資訊}}</div></td>
+              <td class="sm">{{內容摘要}}</td><td class="num">{{數值}}</td>
+              <td><span class="badge b-s2">{{已送出}}</span></td><td><button class="act alt" disabled>{{等待中}}</button></td></tr>
+            <tr class="detail hidden" data-det="3"><td colspan="6"><div class="inner">
+              <div><b>時間軸</b><ul class="tl"><li class="hit">{{建立}}<time>{{11:40}}</time></li><li class="hit">{{送出}}<time>{{11:41}}</time></li><li>{{接收}}<time></time></li><li>{{完成}}<time></time></li></ul></div>
+              <div><b>備註</b><br>{{中性描述，不要承諾示範裡不會發生的自動行為}}</div>
+            </div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-2);margin:0 2px">點任一列可展開時間軸與備註。</p>
+    </div>
+
+    <!-- ─ 檢視二：卡片列表 ─ -->
+    <div id="v-b" class="hidden">
+      <div class="panel">
+        <div class="phead"><h2>{{檢視二標題}}</h2><span class="sub">{{摘要}}</span>
+          <div class="right"><button class="chipbtn on">{{全部}}</button></div></div>
+        <div class="cards2">
+          <div class="c2"><h3>{{名稱}}</h3><div class="addr">{{附屬資訊}}</div>
+            <dl><dt>{{欄位}}</dt><dd>{{值}}</dd><dt>{{欄位}}</dt><dd>{{值}}</dd></dl>
+            <div class="st"><span class="badge b-s4">{{狀態}}</span></div></div>
+          <div class="c2"><h3>{{主線對象}}</h3><div class="addr">{{附屬資訊}}</div>
+            <dl><dt>{{欄位}}</dt><dd id="c2Main">{{0}}</dd><dt>{{欄位}}</dt><dd>{{值}}</dd></dl>
+            <div class="st"><span class="badge b-s1" id="c2MainB">{{待處理}}</span></div></div>
+          <div class="c2"><h3>{{名稱}}</h3><div class="addr">{{附屬資訊}}</div>
+            <dl><dt>{{欄位}}</dt><dd>{{值}}</dd><dt>{{欄位}}</dt><dd>{{值}}</dd></dl>
+            <div class="st"><span class="badge b-s2">{{狀態}}</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─ 檢視三：彙總表（真的在做事：CSV 匯出） ─ -->
+    <div id="v-c" class="hidden">
+      <div class="panel">
+        <div class="phead"><h2>{{檢視三標題}}</h2><span class="sub">{{日期}}</span>
+          <div class="right"><button class="act" id="btnCsv">匯出 CSV</button></div></div>
+        <table class="t">
+          <thead><tr><th>{{對象}}</th><th class="num">{{欄一}}</th><th class="num">{{欄二}}</th><th class="num">{{欄三}}</th><th class="num">{{欄四}}</th><th>狀態</th></tr></thead>
+          <tbody>
+            <tr><td>{{名稱}}</td><td class="num">{{1}}</td><td class="num">{{$1,530}}</td><td class="num">{{$230}}</td><td class="num">{{$1,300}}</td><td><span class="badge b-s4">{{狀態}}</span></td></tr>
+            <tr><td>{{主線對象}}</td><td class="num" id="rcN">{{0}}</td><td class="num" id="rcA">{{$0}}</td><td class="num" id="rcS">{{$0}}</td><td class="num" id="rcP">{{$0}}</td><td><span class="badge b-s1" id="rcB">{{未開始}}</span></td></tr>
+            <tr><td>{{名稱}}</td><td class="num">{{1}}</td><td class="num">{{$2,100}}</td><td class="num">{{$315}}</td><td class="num">{{$1,785}}</td><td><span class="badge b-s2">{{狀態}}</span></td></tr>
+          </tbody>
+          <tfoot><tr><th>合計</th><th class="num" id="rcTN">{{2}}</th><th class="num" id="rcTA">{{$3,630}}</th><th class="num" id="rcTS">{{$545}}</th><th class="num" id="rcTP">{{$3,085}}</th><th></th></tr></tfoot>
+        </table>
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-2);margin:0 2px">「匯出 CSV」在示範版也會真的產生檔案，內容為上表的虛構資料。</p>
+    </div>
+
+    <div id="v-na" class="hidden">
+      <div class="panel"><div class="phead"><h2>示範版未開放</h2></div>
+        <div style="padding:26px 18px;color:var(--ink-2);font-size:14px">{{正式版會有什麼：具體列出來，不要只寫「敬請期待」}}<br>示範版只開放{{三個檢視}}。</div></div>
+    </div>
+  </div>
+
+  <!-- ══ 第二視角：另一個角色看到的畫面。不是手機的話整塊換掉 ══ -->
+  <div class="sidepanelwrap">
+    <div class="phone">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="sysbar"><span class="t" id="sysT">{{11:49}}</span>
+          <span class="icons">▮▮▮ <span style="opacity:.9">◗</span> <span class="batt"><i></i></span></span></div>
+        <div class="abar"><span class="bk">‹</span><span class="av">{{標}}</span>
+          <span class="nm">{{對方看到的標題}}<small>{{副標}}</small></span>
+          <span class="mn">☰</span></div>
+        <div class="chat" id="chat">
+          <div class="day">今天</div>
+          <div class="msg"><span class="ava">{{標}}</span><div class="body">
+            <div class="bub">{{開場訊息}}</div></div>
+            <span class="stamp">{{11:02}}</span></div>
+        </div>
+        <div class="qr" id="qr"><button>{{快捷一}}</button><button>{{快捷二}}</button><button>{{快捷三}}</button></div>
+        <div class="inbar"><span>＋</span><span class="box">{{輸入框提示}}</span><span>☺</span></div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--ink-2);margin:10px 0 0">{{一句話說明第二視角是誰、為什麼這樣設計}}</p>
+  </div>
+</div>
+
+<footer><div class="decl">
+  <b>本頁為離線示範版本。</b>不會連線、不會送出任何訊息、不會儲存任何資料。
+  頁面中出現的{{名稱、地址、內容、金額、時間、編號、統計數字}}均為虛構，不對應任何真實個人或機構。
+  實際系統的介面與流程以正式開發版本為準。
+</div></footer>
+
+<div id="spot"><div class="hole"></div><div class="tip">
+  <b id="tipT"></b><p id="tipP"></p>
+  <div class="row"><span class="n" id="tipN"></span><button id="tipSkip">結束</button><button class="go" id="tipNext">下一步</button></div>
+</div></div>
+
+<div id="modal"><div class="dlg">
+  <h3>{{對話框標題}}</h3>
+  <div class="c">
+    <label>{{欄位標籤}}</label>
+    <select id="mSel">
+      <option value="main" selected>{{主線對象}}（{{附上有用的判斷資訊，例如平均處理時間}}）</option>
+      <option value="alt">{{備選對象}}（{{狀態}}）</option>
+    </select>
+    <div class="hint">{{送出後會發生什麼，一句話}}</div>
+  </div>
+  <div class="a"><button id="mCancel">取消</button><button class="go" id="mOk">{{送出}}</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const row=$("#rowMain"), chat=$("#chat"), badge=$("#mainBadge"), sendBtn=$("#btnSend");
+let stage=0, tour=-1, clock=[11,49];   /* ★ 改成你的案子合理的起始時間 */
+
+/* ★ 狀態機的四個狀態名。改這裡就好，畫面上的徽章會跟著換 */
+const STATES={
+  s1:{cls:"b-s1",label:"{{待處理}}"},
+  s2:{cls:"b-s2",label:"{{已送出}}"},
+  s3:{cls:"b-s3",label:"{{已接收}}"},
+  s4:{cls:"b-s4",label:"{{已完成}}"},
+  sx:{cls:"b-sx",label:"{{已退回}}"}
+};
+function tick(m){clock[1]+=m;while(clock[1]>=60){clock[1]-=60;clock[0]++}
+  const s=String(clock[0]).padStart(2,"0")+":"+String(clock[1]).padStart(2,"0");
+  $("#sysT").textContent=s; return s}
+function toast(m){const e=$("#toast");e.textContent=m;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2500)}
+function setState(k){badge.className="badge "+STATES[k].cls;badge.textContent=STATES[k].label}
+function step(s,t){const li=$('#mainTL li[data-s="'+s+'"]');li.classList.add("hit");li.querySelector("[data-t]").textContent=t}
+function say(html,me,t,read){
+  const d=document.createElement("div");
+  d.className="msg"+(me?" me":"");
+  d.innerHTML=(me?"":'<span class="ava">{{標}}</span>')+'<div class="body">'+html+"</div>"+
+    '<span class="stamp">'+(read?'<span class="rd">已讀</span>':"")+t+"</span>";
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;
+}
+function openDetail(n){
+  const det=$('tr[data-det="'+n+'"]'), r=$('tr[data-row="'+n+'"]');
+  if(det.classList.contains("hidden")){det.classList.remove("hidden");r.classList.add("open")}
+}
+
+/* ── 檢視切換 ── */
+$$("#side a").forEach(a=>{
+  a.setAttribute("tabindex","0"); a.setAttribute("role","button");
+  a.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();a.click()}});
+  a.addEventListener("click",()=>{
+    $$("#side a").forEach(x=>x.classList.remove("on")); a.classList.add("on");
+    ["a","b","c","na"].forEach(v=>$("#v-"+v).classList.add("hidden"));
+    $("#v-"+a.dataset.view).classList.remove("hidden");
+    scrollTo({top:0,behavior:"smooth"});
+  });
+});
+/* ── 展開明細 ── */
+$$("tr[data-row]").forEach(tr=>{
+  tr.setAttribute("tabindex","0");
+  tr.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tr.click()}});
+  tr.addEventListener("click",e=>{
+    if(e.target.closest("button")) return;
+    const n=tr.dataset.row, det=$('tr[data-det="'+n+'"]');
+    det.classList.toggle("hidden"); tr.classList.toggle("open");
+  });
+});
+
+/* ── 主線狀態機：送出 → 接收 → 完成 ／ 退回 → 改派 ── */
+sendBtn.addEventListener("click",()=>{ if(stage&&stage!==9) return; $("#modal").style.display="flex"; $("#mSel").focus() });
+$("#mCancel").addEventListener("click",()=>{$("#modal").style.display="none";sendBtn.focus()});
+$("#mOk").addEventListener("click",()=>{
+  const v=$("#mSel").value, label=$("#mSel").selectedOptions[0].textContent.split("（")[0];
+  $("#modal").style.display="none";
+  if(stage===9){ reassign(label); return; }
+  if(v!=="main"){toast("示範版的完整流程只跑「"+$("#mSel").options[0].textContent.split("（")[0]+"」這條線");return}
+  doSend();
+});
+function doSend(){
+  if(stage&&stage!==9) return; stage=1;
+  const t=tick(2);
+  setState("s2"); sendBtn.disabled=true; sendBtn.textContent="{{等待接收}}"; sendBtn.classList.add("alt");
+  step("sent",t); openDetail(2);
+  $("#kPend").textContent="0";
+  $("#c2MainB").className="badge b-s2"; $("#c2MainB").textContent=STATES.s2.label;
+  $("#rcB").className="badge b-s2"; $("#rcB").textContent="{{處理中}}";
+  const m=say('<div class="cardmsg" id="cardMsg"><div class="hero"><span>{{卡片標題}}</span><span>{{#003}}</span></div>'+
+    '<div class="bd"><div class="ttl">{{最重要的一行資訊}}</div>'+
+    '<dl><dt>{{欄位}}</dt><dd>{{值}}</dd><dt>{{欄位}}</dt><dd>{{值}}</dd></dl>'+
+    '<div class="tot"><span>{{合計}}</span><span>{{$1,280}}</span></div></div>'+
+    '<div class="ft"><button data-take>{{接收}}</button><button class="warn" data-rej>{{無法處理}}</button></div></div>',false,t);
+  m.querySelector("[data-take]").addEventListener("click",doTake);
+  m.querySelector("[data-rej]").addEventListener("click",doRej);
+  toast("{{已送到對方那邊}}");
+}
+function lock(txt){const f=$("#cardMsg .ft"); if(f) f.innerHTML='<button disabled>'+txt+"</button>"}
+function doTake(){
+  if(stage!==1) return; stage=2;
+  const t=tick(3);
+  lock("已於 "+t+" {{接收}}");
+  say('<div class="bub">{{對方的回覆}}</div>',true,t,true);
+  setState("s3"); sendBtn.textContent="{{等待完成}}"; step("take",t);
+  $("#c2Main").textContent="1"; $("#c2MainB").className="badge b-s3"; $("#c2MainB").textContent=STATES.s3.label;
+  /* KPI 也要跟著動——死數字會讓客戶發現這只是一張圖 */
+  $("#kAvg").textContent=(((3.4*4)+3)/5).toFixed(1);
+  const d=say('<div class="bub">{{系統的下一步提示}}</div>',false,tick(1));
+  const b=document.createElement("div"); b.className="qr"; b.style.cssText="background:transparent;padding:7px 0 0";
+  b.innerHTML='<button data-done>✓ {{完成}}</button>';
+  d.querySelector(".body").appendChild(b);
+  b.querySelector("[data-done]").addEventListener("click",doDone);
+  chat.scrollTop=chat.scrollHeight;
+  toast("{{對方一按，這邊同步看到}}");
+}
+function doDone(){
+  if(stage!==2) return; stage=3;
+  const t=tick(23);
+  say('<div class="bub">{{完成}} ✓</div>',true,t,true);
+  say('<div class="bub">{{系統的結案回覆與當日累計}}</div>',false,tick(1));
+  setState("s4"); sendBtn.textContent="{{已完成}}"; step("done",t);
+  $("#c2MainB").className="badge b-s4"; $("#c2MainB").textContent=STATES.s4.label;
+  $("#rcN").textContent="{{1}}"; $("#rcA").textContent="{{$1,280}}"; $("#rcS").textContent="{{$192}}"; $("#rcP").textContent="{{$1,088}}";
+  $("#rcB").className="badge b-s4"; $("#rcB").textContent="{{可結算}}";
+  $("#rcTN").textContent="{{3}}"; $("#rcTA").textContent="{{$4,910}}"; $("#rcTS").textContent="{{$737}}"; $("#rcTP").textContent="{{$4,173}}";
+  toast("{{彙總表同步更新，不用另外算}}");
+}
+/* 退回不是死路——真實營運最常發生的補救動作是改派，一定要能點 */
+function doRej(){
+  if(stage!==1) return; stage=9;
+  const t=tick(2);
+  lock("已於 "+t+" {{回覆無法處理}}");
+  say('<div class="bub">{{對方的婉拒理由}}</div>',true,t,true);
+  say('<div class="bub">{{系統回覆：將改派}}</div>',false,tick(1));
+  setState("sx"); sendBtn.textContent="{{改派其他對象}}"; sendBtn.disabled=false; sendBtn.classList.remove("alt");
+  $("#c2MainB").className="badge b-sx"; $("#c2MainB").textContent=STATES.sx.label;
+  $("#kRej").textContent="{{5}}";
+  toast("{{退回也留下時間紀錄}}");
+}
+function reassign(label){
+  stage=0;
+  $("#mainWho").textContent=label;
+  setState("s1"); sendBtn.textContent="{{送出}}"; sendBtn.classList.remove("alt");
+  $$('#mainTL li').forEach((li,i)=>{if(i){li.classList.remove("hit");li.querySelector("[data-t]").textContent=""}});
+  chat.innerHTML='<div class="day">今天</div><div class="msg"><span class="ava">{{標}}</span><div class="body">'+
+    '<div class="bub">{{改派後的開場訊息}}</div></div><span class="stamp">'+tick(1)+'</span></div>';
+  $("#c2MainB").className="badge b-s1"; $("#c2MainB").textContent=STATES.s1.label;
+  toast("已改派給「"+label+"」");
+  setTimeout(doSend,450);
+}
+
+/* ── 真的在做事：CSV 匯出 ── */
+$("#btnCsv").addEventListener("click",()=>{
+  const rows=[];
+  $$("#v-c thead tr, #v-c tbody tr, #v-c tfoot tr").forEach(tr=>{
+    rows.push([...tr.children].slice(0,5).map(td=>td.textContent.trim()));
+  });
+  /* 數值可能含逗號（$1,530），欄位一律包雙引號，否則 Excel 開起來會裂欄 */
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const csv="﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="{{檔名}}_示範資料.csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast("已匯出（內容為虛構示範資料）");
+});
+
+/* ── 導覽模式：5–8 步。不需要就把 STEPS 清空 ── */
+const STEPS=[
+  {el:"#side", t:"{{第一步標題}}", p:"{{旁白：講客戶的痛點怎麼被解掉，不要唸功能名稱}}"},
+  {el:"#rowMain", t:"{{第二步標題}}", p:"{{旁白}}", act:()=>{$("#modal").style.display="flex"}},
+  {el:"#modal .dlg", t:"{{第三步標題}}", p:"{{旁白}}", act:doSend},
+  {el:".phone", t:"{{第四步標題}}", p:"{{旁白：強調對方不用學新東西}}"},
+  {el:"#cardMsg", t:"{{第五步標題}}", p:"{{旁白}}", act:doTake},
+  {el:'tr[data-det="2"]', t:"{{第六步標題}}", p:"{{旁白：時間戳自動留存的價值}}"},
+  {el:"#side", t:"{{第七步標題}}", p:"{{旁白}}", act:()=>{$$("#side a")[2].click()}},
+  {el:"#v-c .panel", t:"{{第八步標題}}", p:"{{旁白：邀請對方自己再跑一次}}"}
+];
+function place(i){
+  const s=STEPS[i], el=document.querySelector(s.el); if(!el) return next();
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+  /* 文字立刻寫入，只有定位要等捲動停下——否則提示框會空白閃一下 */
+  $("#tipT").textContent=s.t; $("#tipP").textContent=s.p;
+  $("#tipN").textContent=(i+1)+" / "+STEPS.length;
+  $("#tipNext").textContent=i===STEPS.length-1?"完成":"下一步";
+  setTimeout(()=>{
+    const r=el.getBoundingClientRect(), p=6, hole=$("#spot .hole"), tip=$("#spot .tip");
+    hole.style.cssText="left:"+(r.left-p)+"px;top:"+(r.top-p)+"px;width:"+(r.width+p*2)+"px;height:"+(r.height+p*2)+"px";
+    const below=r.bottom+16;
+    tip.style.left=Math.max(12,Math.min(r.left,innerWidth-350))+"px";
+    tip.style.top=(below+190>innerHeight?Math.max(12,r.top-200):below)+"px";
+  },330);
+}
+function next(){const s=STEPS[tour]; if(s&&s.act) s.act(); tour++; if(tour>=STEPS.length) return stopTour(); place(tour)}
+function stopTour(){tour=-1;$("#spot").style.display="none"}
+$("#btnTour").addEventListener("click",()=>{if(!STEPS.length)return;reset();tour=0;$("#spot").style.display="block";place(0)});
+$("#tipNext").addEventListener("click",next);
+$("#tipSkip").addEventListener("click",stopTour);
+addEventListener("resize",()=>{if(tour>=0) place(tour)});
+
+/* ── 重設：客戶會想再看一次，一定要能重播 ── */
+function reset(){
+  stage=0; clock=[11,49]; $("#sysT").textContent="{{11:49}}"; $("#modal").style.display="none";
+  $("#mainWho").textContent=$("#mSel").options[0].textContent.split("（")[0]; $("#mSel").selectedIndex=0;
+  setState("s1");
+  sendBtn.disabled=false; sendBtn.textContent="{{送出}}"; sendBtn.classList.remove("alt");
+  $$('#mainTL li').forEach((li,i)=>{if(i){li.classList.remove("hit");li.querySelector("[data-t]").textContent=""}});
+  $("#kPend").textContent="{{1}}"; $("#c2Main").textContent="{{0}}";
+  $("#kAvg").textContent="{{3.4}}"; $("#kRej").textContent="{{4}}";
+  $("#c2MainB").className="badge b-s1"; $("#c2MainB").textContent=STATES.s1.label;
+  $("#rcN").textContent="{{0}}";$("#rcA").textContent="{{$0}}";$("#rcS").textContent="{{$0}}";$("#rcP").textContent="{{$0}}";
+  $("#rcB").className="badge b-s1"; $("#rcB").textContent="{{未開始}}";
+  $("#rcTN").textContent="{{2}}";$("#rcTA").textContent="{{$3,630}}";$("#rcTS").textContent="{{$545}}";$("#rcTP").textContent="{{$3,085}}";
+  chat.innerHTML='<div class="day">今天</div><div class="msg"><span class="ava">{{標}}</span><div class="body"><div class="bub">{{開場訊息}}</div></div><span class="stamp">{{11:02}}</span></div>';
+  $$("#side a").forEach((x,i)=>x.classList.toggle("on",i===0));
+  ["b","c","na"].forEach(v=>$("#v-"+v).classList.add("hidden"));
+  $("#v-a").classList.remove("hidden");
+}
+$("#btnReset").addEventListener("click",()=>{reset();toast("已回到起點")});
+
+$("#btnTheme").addEventListener("click",()=>{
+  const c=document.documentElement.getAttribute("data-theme");
+  const n=c==="dark"?"light":c==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",n);
+  try{localStorage.setItem("demo:theme",n)}catch(e){}   /* 客戶翻頁回來不該又變回去 */
+});
+try{const t=localStorage.getItem("demo:theme"); if(t) document.documentElement.setAttribute("data-theme",t)}catch(e){}
+
+/* 投影簡報常用鍵盤與簡報器，Esc 一定要能退出 */
+addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  if(getComputedStyle($("#modal")).display!=="none"){$("#modal").style.display="none";sendBtn.focus();return}
+  if($("#spot").style.display==="block") stopTour();
+});
+$$("#qr button").forEach(b=>b.addEventListener("click",()=>toast("示範版未開放此快捷鍵")));
+})();
+</script>
+</body>
+</html>

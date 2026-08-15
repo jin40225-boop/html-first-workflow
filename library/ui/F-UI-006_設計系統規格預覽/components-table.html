@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-app); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .label { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 12px; letter-spacing: .04em; }
+
+  /* Case row — 暖意版主要呈現 */
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .case-row {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all 160ms;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .case-row:hover {
+    border-color: var(--orange-200);
+    box-shadow: var(--shadow-card);
+    transform: translateX(2px);
+  }
+  .case-row.is-flagged { background: linear-gradient(90deg, var(--warn-50) 0%, var(--bg-surface) 12%); }
+  .case-row-main {
+    display: grid;
+    grid-template-columns: 90px 1fr 160px 140px 130px 40px;
+    align-items: center; gap: 16px;
+    padding: 16px 20px;
+  }
+  .name { font-size: var(--fs-base); font-weight: 600; color: var(--fg-1); }
+  .meta { font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 4px; font-family: var(--font-mono); }
+  .col-label { font-size: var(--fs-xs); color: var(--fg-faint); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+  .col-value { font-size: var(--fs-sm); color: var(--fg-2); }
+
+  /* Grade badge — pill */
+  .gb { display: inline-flex; padding: 4px 12px; border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 700; border: 1px solid; }
+  .gb-1 { background: var(--grade-1-bg); color: var(--grade-1-fg); border-color: var(--grade-1-bd); }
+  .gb-2 { background: var(--grade-2-bg); color: var(--grade-2-fg); border-color: var(--grade-2-bd); }
+  .gb-3 { background: var(--grade-3-bg); color: var(--grade-3-fg); border-color: var(--grade-3-bd); }
+  .gb-4 { background: var(--grade-4-bg); color: var(--grade-4-fg); border-color: var(--grade-4-bd); }
+
+  .sb { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: var(--radius-pill); font-size: var(--fs-xs); font-weight: 600; }
+  .sb::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .sb-active  { background: var(--success-50); color: var(--success-600); }
+  .sb-pending { background: var(--warn-50);    color: var(--warn-700); }
+
+  .chev { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--fg-muted); border: 0; background: transparent; cursor: pointer; }
+  .chev:hover { background: var(--orange-50); color: var(--orange-700); }
+
+  .hh-dot { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--warn-700); font-weight: 600; margin-left: 12px; }
+  .hh-dot::before { content: "⚠"; font-size: 14px; }
+</style>
+</head>
+<body>
+<p class="label">case-row · 暖意版主要案件呈現（卡片化、可內嵌展開）</p>
+<div class="stack">
+  <div class="case-row">
+    <div class="case-row-main">
+      <span class="gb gb-1">一級</span>
+      <div>
+        <div class="name">陳雅婷</div>
+        <div class="meta">CA0099_0001 · R250014</div>
+      </div>
+      <div>
+        <div class="col-label">案件狀態</div>
+        <div class="col-value"><span class="sb sb-active">在案處遇中</span></div>
+      </div>
+      <div>
+        <div class="col-label">主責社工</div>
+        <div class="col-value">王曉明</div>
+      </div>
+      <div>
+        <div class="col-label">開案日</div>
+        <div class="col-value" style="font-family: var(--font-mono)">114-03-12</div>
+      </div>
+      <button class="chev">▾</button>
+    </div>
+  </div>
+
+  <div class="case-row is-flagged">
+    <div class="case-row-main">
+      <span class="gb gb-3">三級</span>
+      <div>
+        <div class="name">林宗翰<span class="hh-dot">同家戶 2 件</span></div>
+        <div class="meta">CA0099_0007 · R250022</div>
+      </div>
+      <div>
+        <div class="col-label">案件狀態</div>
+        <div class="col-value"><span class="sb sb-pending">待補齊</span></div>
+      </div>
+      <div>
+        <div class="col-label">主責社工</div>
+        <div class="col-value">蔡欣怡</div>
+      </div>
+      <div>
+        <div class="col-label">開案日</div>
+        <div class="col-value" style="font-family: var(--font-mono)">114-03-20</div>
+      </div>
+      <button class="chev">▾</button>
+    </div>
+  </div>
+
+  <div class="case-row">
+    <div class="case-row-main">
+      <span class="gb gb-4">四級</span>
+      <div>
+        <div class="name">黃志強</div>
+        <div class="meta">CA0099_0014 · R250031</div>
+      </div>
+      <div>
+        <div class="col-label">案件狀態</div>
+        <div class="col-value"><span class="sb sb-active">在案處遇中</span></div>
+      </div>
+      <div>
+        <div class="col-label">主責社工</div>
+        <div class="col-value">周建華</div>
+      </div>
+      <div>
+        <div class="col-label">開案日</div>
+        <div class="col-value" style="font-family: var(--font-mono)">114-04-02</div>
+      </div>
+      <button class="chev">▾</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

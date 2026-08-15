@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-surface); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .box { border: 1px solid var(--border); }
+  .specimen-label { font-size: var(--fs-xs); color: var(--fg-muted); font-family: var(--font-mono); margin: 0 0 8px; letter-spacing: .04em; }
+
+  /* radii */
+  .s-r { padding: 16px; background: var(--bg-app); border: 1px solid var(--border); color: var(--fg-2); }
+  .s-r-none  { border-radius: 0; }
+  .s-r-xs    { border-radius: var(--radius-xs); }
+  .s-r-sm    { border-radius: var(--radius-sm); }
+  .s-r-md    { border-radius: var(--radius-md); }
+  .s-r-pill  { border-radius: var(--radius-pill); display: inline-block; padding: 8px 18px; }
+
+  /* borders */
+  .b-default { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-surface); }
+  .b-strong  { border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-surface); }
+  .b-dashed  { border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 16px; background: var(--bg-surface); }
+  .b-glow    { border: 1px solid #f4c9aa; border-radius: var(--radius-sm); padding: 16px; background: var(--bg-surface); box-shadow: 0 0 0 4px rgba(217,119,87,.15); }
+
+  /* shadow */
+  .sh-none { background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .sh-sm   { background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+  .sh-card { background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-card); }
+  .sh-pop  { background: var(--bg-surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
+  .sh-mod  { background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-modal); }
+</style>
+</head>
+<body>
+<p class="specimen-label">RADII · 暖意版（柔和圓角，從 6px 到 pill）</p>
+<div class="grid">
+  <div class="s-r s-r-none">radius-none · 0（少用）</div>
+  <div class="s-r s-r-xs">radius-xs · 6px（tag · inline chip）</div>
+  <div class="s-r s-r-sm">radius-sm · 10px（button · input）</div>
+  <div class="s-r s-r-md">radius-md · 16px（card · panel）</div>
+</div>
+<div style="margin-top:10px">
+  <span class="s-r s-r-pill" style="background:var(--bg-app); border:1px solid var(--border);">radius-pill · 999px（chip · badge · nav-pill）</span>
+</div>
+<p class="specimen-label" style="margin-top:22px">BORDERS</p>
+<div class="grid">
+  <div class="b-default">border · #ECDFCA（預設）</div>
+  <div class="b-strong">border-strong · #E1D2B8（按鈕邊框）</div>
+  <div class="b-glow">focus glow · brand soft（取代 outline）</div>
+  <div class="b-dashed">border-dashed · drawer divider</div>
+</div>
+<p class="specimen-label" style="margin-top:22px">SHADOWS · 暖色柔光</p>
+<div class="grid">
+  <div class="sh-none">shadow-none（預設 · 不抬升）</div>
+  <div class="sh-sm">shadow-sm（hover · 微浮）</div>
+  <div class="sh-card">shadow-card（card 預設）</div>
+  <div class="sh-pop">shadow-pop（dropdown · 搜尋結果）</div>
+</div>
+<div style="margin-top:14px">
+  <div class="sh-mod">shadow-modal（drawer · modal panel）</div>
+</div>
+</body>
+</html>

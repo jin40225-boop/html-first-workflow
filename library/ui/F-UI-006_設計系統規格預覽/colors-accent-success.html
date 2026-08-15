@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-surface); font-family: var(--font-sans); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 14px; }
+  .chip { width: 40px; height: 40px; border-radius: var(--radius-xs); border: 1px solid var(--border); }
+  .name { font-size: var(--fs-sm); font-weight: var(--weight-semibold); color: var(--fg-1); }
+  .role { font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; }
+  .hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-3); }
+  h4 { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  section + section { margin-top: 18px; }
+</style>
+</head>
+<body>
+<section>
+  <h4>BRAND — 赭土紅（terracotta） / 連結 · 聚焦 · 強調</h4>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#c5613f"></div><div><div class="name">brand-2</div><div class="role">hover / 強調</div></div><div class="hex">#C5613F</div></div>
+    <div class="sw"><div class="chip" style="background:#d97757"></div><div><div class="name">brand</div><div class="role">主色 / 主要動作</div></div><div class="hex">#D97757</div></div>
+    <div class="sw"><div class="chip" style="background:#ec9b6c"></div><div><div class="name">brand-300</div><div class="role">soft accent</div></div><div class="hex">#EC9B6C</div></div>
+    <div class="sw"><div class="chip" style="background:#f4c9aa"></div><div><div class="name">brand-200</div><div class="role">徽章邊框</div></div><div class="hex">#F4C9AA</div></div>
+    <div class="sw"><div class="chip" style="background:#fdf0e6"></div><div><div class="name">brand-50</div><div class="role">徽章底 / hover</div></div><div class="hex">#FDF0E6</div></div>
+  </div>
+</section>
+<section>
+  <h4>SUCCESS — 暖綠（warm green） / 在案處遇 · 結案完成</h4>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#2b5e34"></div><div><div class="name">success-800</div><div class="role">深色狀態文字</div></div><div class="hex">#2B5E34</div></div>
+    <div class="sw"><div class="chip" style="background:#357341"></div><div><div class="name">success-700</div><div class="role">grade-3 文字</div></div><div class="hex">#357341</div></div>
+    <div class="sw"><div class="chip" style="background:#4e9d6c"></div><div><div class="name">success-600</div><div class="role">status-active 主色</div></div><div class="hex">#4E9D6C</div></div>
+    <div class="sw"><div class="chip" style="background:#c0e2c8"></div><div><div class="name">success-200</div><div class="role">徽章邊框</div></div><div class="hex">#C0E2C8</div></div>
+    <div class="sw"><div class="chip" style="background:#ecf7ef"></div><div><div class="name">success-50</div><div class="role">徽章底 / 完成 tone</div></div><div class="hex">#ECF7EF</div></div>
+  </div>
+</section>
+<section>
+  <h4>INFO — 暖暮藍（warm dusk blue） / 連結 · 併案 · 四級</h4>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#2f6595"></div><div><div class="name">info-800</div><div class="role">grade-4 文字</div></div><div class="hex">#2F6595</div></div>
+    <div class="sw"><div class="chip" style="background:#3e7aa3"></div><div><div class="name">info-700</div><div class="role">link hover</div></div><div class="hex">#3E7AA3</div></div>
+    <div class="sw"><div class="chip" style="background:#4f8cb8"></div><div><div class="name">info-600</div><div class="role">連結色 / 併案動作</div></div><div class="hex">#4F8CB8</div></div>
+    <div class="sw"><div class="chip" style="background:#c9dde9"></div><div><div class="name">info-200</div><div class="role">grade-4 邊框</div></div><div class="hex">#C9DDE9</div></div>
+    <div class="sw"><div class="chip" style="background:#f0f7fb"></div><div><div class="name">info-50</div><div class="role">grade-4 底</div></div><div class="hex">#F0F7FB</div></div>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-app); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  label { display: block; }
+  .field { font-size: var(--fs-xs); color: var(--fg-muted); letter-spacing: .04em; }
+  input, select { width: 100%; box-sizing: border-box; font-family: inherit; }
+  .inp {
+    margin-top: 6px;
+    border: 1px solid var(--border-strong);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    background: var(--bg-surface);
+    color: var(--fg-1);
+    outline: none;
+    transition: all 160ms;
+  }
+  .inp:focus { border-color: var(--orange-700); box-shadow: var(--focus-ring); }
+  .auto    { border-color: var(--success-600) !important; background: var(--success-50) !important; }
+  .needs   { border-color: var(--warn-500) !important; background: var(--warn-50) !important; }
+  .req-empty { border-color: var(--danger-500) !important; background: var(--danger-50) !important; }
+  .hint { margin-top: 6px; font-size: var(--fs-xs); color: var(--fg-muted); }
+  .hint.ok   { color: var(--success-700); }
+  .hint.err  { color: var(--danger-700); }
+  .hint.warn { color: var(--warn-700); }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <label>
+      <span class="field">姓名</span>
+      <input class="inp" value="陳雅婷">
+      <div class="hint">本欄為必填</div>
+    </label>
+    <label>
+      <span class="field">身分證</span>
+      <input class="inp auto" value="A123456789">
+      <div class="hint ok">✓ 自動帶入（PDF 解析）</div>
+    </label>
+    <label>
+      <span class="field">服務分級</span>
+      <select class="inp needs"><option>需手動確認</option><option>一級</option><option>二級</option></select>
+      <div class="hint warn">需人工確認</div>
+    </label>
+    <label>
+      <span class="field">轉介單號</span>
+      <input class="inp req-empty" placeholder="未填">
+      <div class="hint err">⚠ 必填欄位</div>
+    </label>
+  </div>
+</body>
+</html>

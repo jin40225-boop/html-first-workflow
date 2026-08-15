@@ -1,0 +1,487 @@
+{# 暖意版案件抽屜 — 完整編輯頁（drawer = full edit page，廢 process.html 跳頁） #}
+{# UX_Plan PAGE 03：drawer 內所有欄位可直接編輯，三層摺疊（基本/聯絡/服務 預設展開）。 #}
+
+{% macro grade_badge(g) %}
+{% set g = g or '' %}
+{% if '一級' in g %}<span class="gbadge g1">{{ g }}</span>
+{% elif '二級' in g %}<span class="gbadge g2">{{ g }}</span>
+{% elif '三級' in g %}<span class="gbadge g3">{{ g }}</span>
+{% elif '四級' in g %}<span class="gbadge g4">{{ g }}</span>
+{% elif g %}<span class="gbadge gs">{{ g }}</span>
+{% else %}<span class="gbadge gn">未設</span>{% endif %}
+{% endmacro %}
+
+{% macro status_badge(s) %}
+{% if s == '在案處遇中' %}<span class="sbadge active">{{ s }}</span>
+{% elif s in ('已結案', '退案', '轉外轄') %}<span class="sbadge closed">{{ s }}</span>
+{% elif s in ('待認領', '待補齊', '待確認') %}<span class="sbadge pending">{{ s }}</span>
+{% else %}<span class="sbadge other">{{ s or '—' }}</span>{% endif %}
+{% endmacro %}
+
+<div class="drawer-scrim" id="case-drawer-scrim"
+     onclick="DcmsWarm.closeDrawer(document.getElementById('case-drawer'), this, () => history.replaceState(null, '', window.location.pathname));"></div>
+<div class="drawer" id="case-drawer" role="dialog" aria-modal="true" aria-labelledby="case-drawer-title">
+  <button class="close" type="button"
+          onclick="DcmsWarm.closeDrawer(document.getElementById('case-drawer'), document.getElementById('case-drawer-scrim'), () => history.replaceState(null, '', window.location.pathname));"
+          aria-label="關閉">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+         stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  </button>
+
+  {% if forbidden %}
+    <div class="drawer-body">
+      <div class="card-pad" style="text-align: center; color: var(--danger); padding: 60px 24px;">
+        <div class="ds-h2">無權限</div>
+        <p class="muted" style="margin-top: 8px;">此非您負責的案件，如需協作請聯繫管理組。</p>
+      </div>
+    </div>
+  {% elif not case %}
+    <div class="drawer-body">
+      <div class="card-pad" style="text-align: center; color: var(--ink-3); padding: 60px 24px;">
+        <div class="ds-h2">案件不存在</div>
+      </div>
+    </div>
+  {% else %}
+    {% set pct = ((case.completeness_score or 0) * 100) | round | int %}
+    {% set hh_other = (case.household_active_case_count or 0) - 1 if case.household_active_case_count and case.household_active_case_count > 1 else 0 %}
+
+    {% set status_to_step = {
+      '待認領': 1, '待補齊': 2, '待確認': 1,
+      '在案處遇中': 2,
+      '已結案': 3, '退案': 3, '轉外轄': 3,
+    } %}
+    {% set current_step = status_to_step.get(case.case_status, 0) %}
+
+    {# ── Drawer Head ─────────────────────────────────── #}
+    <div class="drawer-head">
+      <div class="row" style="gap: 8px; margin-bottom: 8px;">
+        {{ grade_badge(case.service_grade) }}
+        {{ status_badge(case.case_status) }}
+        {% if hh_other %}<span class="tag t-warn">⚠ 同家戶 {{ hh_other }} 件</span>{% endif %}
+      </div>
+      <h2 id="case-drawer-title" style="margin: 0; font-size: var(--type-xl); font-weight: 700;">{{ case.name }}</h2>
+      <div style="margin-top: 6px; font-size: var(--type-sm); color: var(--ink-3);">
+        <span class="mono">{{ case.case_no or '—' }}</span>
+        · <span class="mono">{{ case.id_card or '—' }}</span>
+        · {{ case.area or '—' }}
+      </div>
+
+      {# Stepper #}
+      <div class="stepper" style="margin-top: 16px;">
+        {% set steps = [('開案','intake'), ('派案確認','assign'), ('處遇中','active'), ('結案','close')] %}
+        {% for label, _id in steps %}
+          {% set i = loop.index0 %}
+          <div class="step {% if i < current_step %}is-done{% elif i == current_step %}is-current{% endif %}">
+            <div class="dot">{% if i < current_step %}✓{% else %}{{ i + 1 }}{% endif %}</div>
+            <div class="label">{{ label }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# ── Drawer Body：整個包成一個 form，submit 後 swap drawer body ── #}
+    <form id="drawer-case-form"
+          method="post"
+          hx-post="{{ url_for('cases.drawer_save', case_id=case.case_id) }}"
+          hx-target="#case-drawer"
+          hx-swap="outerHTML"
+          hx-disabled-elt="this">
+      <input type="hidden" name="process_mode" value="{{ selected_mode or '資料變更' }}">
+      <input type="hidden" name="mode" value="資料變更">
+
+      <div class="drawer-body">
+
+        {# ── Banner 區（情境出現） ──────────────────── #}
+        {% if error %}
+        <div class="banner b-red" role="alert" style="margin-bottom: 16px;">
+          <div class="title red">儲存失敗</div>
+          <div class="sub">{{ error }}</div>
+        </div>
+        {% endif %}
+
+        {% if case.case_status == '待確認' %}
+        <div class="banner b-amber" style="margin-bottom: 16px;">
+          <div class="title amber">PDF 匯入 — 待確認</div>
+          <div class="sub">此案件由 PDF 解析建立，請檢查欄位後按底部「✅ 直接確認接案」正式進入在案處遇。</div>
+        </div>
+        {% endif %}
+
+        {% if duplicate_cases %}
+        <div class="banner b-amber" style="margin-bottom: 16px;">
+          <div class="title amber">⚠ 疑似同一人 · {{ duplicate_cases | length }} 件</div>
+          <ul class="ds-xs" style="margin: 8px 0 0; padding-left: 18px;">
+            {% for dup in duplicate_cases %}
+            <li>
+              <strong>{{ dup.name or '（已遮蔽）' }}</strong>
+              <span class="mono muted">{{ dup.case_no or dup.ref_no or '—' }}</span>
+              · {{ dup.service_grade or '—' }} · {{ dup.case_status or '—' }}
+              · 主責 {{ dup.assignee_name or dup.assignee or '—' }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% if hh_other %}
+        <div class="banner b-amber" style="margin-bottom: 16px;">
+          <div class="title amber">同家戶警示</div>
+          <div class="sub">此地址尚有 {{ hh_other }} 件在案個案，請留意家戶層級的情境。</div>
+        </div>
+        {% endif %}
+
+        {# ── 完整率卡 ──────────────────────────── #}
+        <div class="card card-pad" style="background: var(--bg-soft); border-color: var(--line-soft); margin-bottom: 20px;">
+          <div class="between" style="margin-bottom: 12px;">
+            <div style="font-size: var(--type-sm); font-weight: 600;">資料完整率</div>
+            <div class="mono bold" style="font-size: var(--type-lg);">{{ pct }}%</div>
+          </div>
+          <div class="completeness-bar" style="background: var(--bg-card); height: 10px; border-radius: 6px; overflow: hidden;">
+            <span style="display: block; width: {{ pct }}%; height: 100%;
+                        background: {% if pct >= 70 %}linear-gradient(90deg, var(--success) 0%, #6fb585 100%){% else %}linear-gradient(90deg, var(--warn) 0%, #f3b76b 100%){% endif %};
+                        transition: width 1000ms cubic-bezier(.22,1,.36,1);"></span>
+          </div>
+          {% if missing_fields %}
+          <div style="margin-top: 10px; font-size: var(--type-xs); color: var(--warn-700);">
+            待補欄位：{{ missing_fields | map(attribute='label') | join('、') }}
+          </div>
+          {% endif %}
+        </div>
+
+        {# ── 三色標示說明（PDF 匯入初次編輯時顯示） ── #}
+        {% if is_initial_edit and not readonly %}
+        <div class="row ds-xs" style="gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+          <span class="row" style="gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--success-tint); border: 1px solid var(--success); display: inline-block;"></span>PDF 自動填入</span>
+          <span class="row" style="gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--warn-tint); border: 1px solid var(--warn); display: inline-block;"></span>需人工確認</span>
+          <span class="row" style="gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: var(--danger-tint); border: 1px solid var(--danger); display: inline-block;"></span>必填未填</span>
+        </div>
+        {% endif %}
+
+        {# ── 快速動作條（action-strip）— design system 8 色語意按鈕 ── #}
+        {% if not is_new %}
+        <div class="action-strip" style="margin-bottom: 16px;">
+          <span class="action-strip-label">快速操作</span>
+          {% if not readonly %}
+            <button type="button" class="action-btn action-btn-close"
+                    onclick="document.getElementById('drawer-modal-close-case').showModal()">結案</button>
+            <button type="button" class="action-btn action-btn-reject"
+                    onclick="document.getElementById('drawer-modal-reject-case').showModal()">不開案／退案</button>
+            <button type="button" class="action-btn action-btn-out"
+                    onclick="document.getElementById('drawer-modal-transfer-out').showModal()">轉外轄</button>
+            <button type="button" class="action-btn action-btn-merge"
+                    onclick="document.getElementById('drawer-modal-merge-case').showModal()">併案</button>
+            <span class="action-strip-sep"></span>
+            <button type="button" class="action-btn action-btn-grade"
+                    onclick="document.getElementById('drawer-modal-grade-change').showModal()">分級覆核</button>
+            <button type="button" class="action-btn action-btn-transfer"
+                    onclick="document.getElementById('drawer-modal-transfer-case').showModal()">轉案</button>
+          {% elif can_reopen %}
+            <button type="button" class="action-btn action-btn-reopen"
+                    onclick="document.getElementById('drawer-modal-reopen-case').showModal()">重啟案件</button>
+          {% endif %}
+          {% if case.case_id %}
+          <a class="action-btn action-btn-history" href="{{ url_for('cases.case_history_view', case_id=case.case_id) }}">歷程</a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if readonly %}<fieldset disabled class="contents">{% endif %}
+
+        {# ── 摺疊群組（依使用者 Q1 決策：基本/聯絡/服務 預設展開）── #}
+        <details class="drawer-group" open data-group="basic">
+          <summary>基本身分</summary>
+          {% include "cases/_field_groups/basic.html" %}
+        </details>
+
+        <details class="drawer-group" open data-group="contact-addr">
+          <summary>聯絡與地址</summary>
+          {% include "cases/_field_groups/contact.html" %}
+          {% include "cases/_field_groups/address.html" %}
+        </details>
+
+        <details class="drawer-group" open data-group="service">
+          <summary>服務狀況</summary>
+          {% include "cases/_field_groups/service.html" %}
+        </details>
+
+        <details class="drawer-group" data-group="identity">
+          <summary>身分識別</summary>
+          {% include "cases/_field_groups/identity.html" %}
+        </details>
+
+        <details class="drawer-group" data-group="disability">
+          <summary>障礙身分</summary>
+          {% include "cases/_field_groups/disability.html" %}
+        </details>
+
+        <details class="drawer-group" data-group="family">
+          <summary>家庭組成</summary>
+          {% include "cases/_field_groups/family.html" %}
+        </details>
+
+        <details class="drawer-group" data-group="notes">
+          <summary>處遇紀錄 / 備註</summary>
+          {% include "cases/_field_groups/notes.html" %}
+        </details>
+
+        {% if readonly %}</fieldset>{% endif %}
+
+        {# ── PDF 原文對照（有 raw_text 時才顯示，PDF 匯入時預設展開）── #}
+        {% if pdf_raw_text %}
+        <details class="drawer-group" {% if is_initial_edit %}open{% endif %} data-group="pdf-raw">
+          <summary>📄 PDF 解析原文（供人工核對與複製）</summary>
+          <pre style="max-height: 240px; overflow-y: auto; white-space: pre-wrap;
+                      background: var(--bg-card); border: 1px solid var(--line-soft);
+                      border-radius: var(--r-sm); padding: 12px 14px;
+                      font-family: var(--font-mono); font-size: var(--type-xs);
+                      color: var(--ink-2); user-select: text;">{{ pdf_raw_text }}</pre>
+        </details>
+        {% endif %}
+
+        {# ── 近期軌跡 ──────────────────────────── #}
+        <div style="margin: 24px 0 8px; font-size: var(--type-sm); font-weight: 600; color: var(--ink-1);">近期軌跡</div>
+        <div class="tl">
+          {% for h in history %}
+            {% set _is_first = loop.first %}
+            <div class="tl-item {% if _is_first %}is-now{% endif %}">
+              <div class="when">{{ (h.timestamp or '')[:16] }}</div>
+              <div class="what">{{ h.change_field or h.change_type or '動態' }}{% if h.new_value %} · {{ h.new_value|string|truncate(40) }}{% endif %}</div>
+              <div class="who">{{ h.reporter or '系統' }}{% if h.status_desc %} · {{ h.status_desc|truncate(36) }}{% endif %}</div>
+            </div>
+          {% else %}
+            <div class="muted ds-xs" style="padding: 8px 0;">尚無軌跡</div>
+          {% endfor %}
+          {% if case.case_id %}
+          <a href="{{ url_for('cases.case_history_view', case_id=case.case_id) }}"
+             style="display: inline-block; margin-top: 8px; font-size: var(--type-xs); color: var(--brand);">
+            查看完整歷程 →
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {# ── Drawer Foot（sticky）── #}
+      <div class="drawer-foot">
+        <button class="btn" type="button"
+                onclick="DcmsWarm.closeDrawer(document.getElementById('case-drawer'), document.getElementById('case-drawer-scrim'), () => history.replaceState(null, '', window.location.pathname));">關閉</button>
+        {% if not readonly %}
+        <button class="btn btn-primary" type="submit">儲存變更</button>
+        {% endif %}
+        {% if case.case_status == '待確認' and not readonly %}
+        <button class="btn btn-brand" type="button"
+                hx-post="{{ url_for('case_process.confirm_intake', case_id=case.case_id) }}"
+                hx-confirm="確認將此案件正式接案進入「在案處遇中」？">✅ 直接確認接案</button>
+        {% elif case.case_status == '待補齊' and not readonly %}
+        <button class="btn btn-brand" type="button"
+                hx-post="{{ url_for('case_process.complete_supplement_view', case_id=case.case_id) }}"
+                hx-confirm="確認此案件資料已補齊？（完整率需達標才會放行）">✅ 完成補齊</button>
+        {% endif %}
+        {% if is_initial_edit and not readonly and case.case_id %}
+        <button class="btn btn-brand" type="button"
+                hx-post="{{ url_for('case_process.complete_initial_edit_view', case_id=case.case_id) }}"
+                hx-confirm="確認初次編輯已完成？（請先按「儲存變更」，完整率需 100% 才會解除提醒）">✅ 完成初次編輯</button>
+        {% endif %}
+      </div>
+    </form>
+
+    {# ── Drawer 內 Modals（放 form 外，避免 form nest）── #}
+    {# 共用設定：每個 form 都用 hx-post drawer_save，submit 後整個 drawer swap #}
+    {% if not is_new and case.case_id and not readonly %}
+    {% set drawer_save_url = url_for('cases.drawer_save', case_id=case.case_id) %}
+
+    {# Modal：結案 #}
+    <dialog id="drawer-modal-close-case" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--danger-700);">結案確認</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          個案：<strong>{{ case.name }}</strong>{% if case.case_no %}（{{ case.case_no }}）{% endif %}
+        </p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="結案">
+          <label class="block">結案原因 *
+            <textarea name="close_reason" required rows="3" placeholder="請說明結案原因（必填）"></textarea>
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn btn-danger-soft" style="background: var(--danger); color: #fff; border-color: var(--danger);">確認結案</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {# Modal：不開案／退案 #}
+    <dialog id="drawer-modal-reject-case" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--warn-700);">不開案／退案</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          此操作會將個案狀態設為「退案」並寫入歷程。
+        </p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="不開案/退案">
+          <label class="block">退案原因 *
+            <select name="close_reason" required>
+              <option value="">— 請選擇 —</option>
+              <option value="其他（死亡；住全日型住宿式機構、呼吸照護病房、精神專科醫院且無服務需求；入監且刑期達6個月以上；失蹤；不符合身心障礙資格）">其他（死亡 / 機構 / 入監 / 失蹤 / 不符資格）</option>
+              <option value="已是處遇中個案">已是處遇中個案</option>
+              <option value="非本轄區案件，轉至其他縣市窗口">非本轄區案件</option>
+              <option value="非身心障礙者服務中心服務對象">非服務對象</option>
+            </select>
+          </label>
+          <label class="block" style="margin-top: 12px;">補充說明（選填）
+            <textarea name="master_note" rows="2" placeholder="補充說明退案情況"></textarea>
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--warn); color: #fff; border-color: var(--warn);">確認退案</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {# Modal：轉外轄 #}
+    <dialog id="drawer-modal-transfer-out" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--grape-700);">轉外轄</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          個案：<strong>{{ case.name }}</strong>{% if case.ref_no %}（{{ case.ref_no }}）{% endif %}<br>
+          此操作會將個案狀態設為「轉外轄」並寫入歷程。
+        </p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="轉外轄">
+          <label class="block">轉轄機構／地區 *
+            <input name="transfer_reason" required placeholder="例如：轉臺北市社會局、轉高雄市個管中心">
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--grape-700); color: #fff; border-color: var(--grape-700);">確認轉外轄</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {# Modal：分級覆核 #}
+    <dialog id="drawer-modal-grade-change" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2>分級異動</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          目前分級：<strong>{{ case.service_grade or '未設定' }}</strong>
+          {% if case.case_grade %}／案件分級：{{ case.case_grade }}{% endif %}
+        </p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="分級異動">
+          <label class="block">新服務分級 *
+            <select name="service_grade" required>
+              <option value="">— 請選擇 —</option>
+              {% for g in grade_options %}
+                <option value="{{ g }}" {% if case.service_grade == g %}selected{% endif %}>{{ g }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="block" style="margin-top: 12px;">異動說明（選填）
+            <input name="master_note" placeholder="分級變更原因">
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--warn); color: #fff; border-color: var(--warn);">確認異動</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {# Modal：轉案（轉主責） #}
+    <dialog id="drawer-modal-transfer-case" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--success-700);">轉移主責</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          目前主責：<strong>{{ case.assignee_name or case.assignee or '未指定' }}</strong>
+        </p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="主責變更">
+          <label class="block">新主責人員 *
+            <select name="assignee" required>
+              <option value="">— 請選擇 —</option>
+              {% for worker in workers %}
+                <option value="{{ worker.username }}" {% if case.assignee == worker.username %}selected{% endif %}>{{ worker.display_name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="block" style="margin-top: 12px;">交接說明（選填）
+            <input name="master_note" placeholder="原因或交接重點">
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--success); color: #fff; border-color: var(--success);">確認轉移</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    {# Modal：併案（含主案搜尋；JS 沿用 process.html 既有腳本 / Step 7 後續精修） #}
+    <dialog id="drawer-modal-merge-case" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--info-800);">併案續處</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">將目前個案以併案方式附入主案軌跡（不覆蓋主案欄位）。</p>
+        <form hx-post="{{ drawer_save_url }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="併案續處">
+          <label class="block">主案編號 *
+            <input name="merge_target" required placeholder="輸入 CA 或 TI 編號">
+          </label>
+          <label class="block" style="margin-top: 12px;">併案說明 *
+            <textarea name="merge_note" required rows="3" placeholder="說明併案原因與關係（必填）"></textarea>
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--info); color: #fff; border-color: var(--info);">確認併案</button>
+          </div>
+        </form>
+        <p class="ds-xs muted" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line-soft);">
+          ＊ 主案搜尋輔助功能會在後續精修中加入；目前先手動輸入編號即可。
+        </p>
+      </div>
+    </dialog>
+    {% endif %}
+
+    {# Modal：重啟案件（已結案 / 退案 / 轉外轄 且本人主責時顯示） #}
+    {% if case and case.case_id and can_reopen %}
+    <dialog id="drawer-modal-reopen-case" class="ds-modal">
+      <div class="ds-modal-panel">
+        <h2 style="color: var(--success-700);">重啟案件</h2>
+        <p class="ds-xs muted" style="margin-bottom: 14px;">
+          此案件目前已結案。重啟後狀態將改為「在案處遇中」並寫入歷程。
+        </p>
+        <form hx-post="{{ url_for('cases.drawer_save', case_id=case.case_id) }}" hx-target="#case-drawer" hx-swap="outerHTML"
+              hx-on::after-request="this.closest('dialog').close()">
+          <input type="hidden" name="mode" value="重啟案件">
+          <label class="block">重啟原因（選填）
+            <input name="master_note" placeholder="例如：新轉介、當事人重新申請">
+          </label>
+          <div class="row" style="justify-content: flex-end; gap: 8px; margin-top: 16px;">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()">取消</button>
+            <button type="submit" class="btn" style="background: var(--success); color: #fff; border-color: var(--success);">確認重啟</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    {% endif %}
+  {% endif %}
+</div>
+
+{# 抽屜本次 HTMX swap 完成 → 觸發 open 動畫 + pushState #}
+<script>
+(function () {
+  const drawer = document.getElementById("case-drawer");
+  const scrim = document.getElementById("case-drawer-scrim");
+  if (!drawer || !scrim || !window.DcmsWarm) return;
+  DcmsWarm.openDrawer(drawer, scrim);
+  {% if case %}
+  const url = new URL(window.location.href);
+  url.searchParams.set("case", "{{ case.case_id }}");
+  history.replaceState(null, "", url.toString());
+  {% endif %}
+})();
+</script>

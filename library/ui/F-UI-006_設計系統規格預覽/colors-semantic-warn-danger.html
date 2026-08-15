@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-surface); font-family: var(--font-sans); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 14px; }
+  .chip { width: 40px; height: 40px; border-radius: var(--radius-xs); border: 1px solid var(--border); }
+  .name { font-size: var(--fs-sm); font-weight: var(--weight-semibold); color: var(--fg-1); }
+  .role { font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; }
+  .hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-3); }
+  h4 { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  section + section { margin-top: 18px; }
+</style>
+</head>
+<body>
+<section>
+  <h4>WARN — 暖橘琥珀 / 警示 · 待補 · 待確認 · 二級</h4>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#66400a"></div><div><div class="name">warn-900</div><div class="role">待補齊文字</div></div><div class="hex">#66400A</div></div>
+    <div class="sw"><div class="chip" style="background:#b06e1d"></div><div><div class="name">warn-700</div><div class="role">grade-2 文字</div></div><div class="hex">#B06E1D</div></div>
+    <div class="sw"><div class="chip" style="background:#e89545"></div><div><div class="name">warn-500</div><div class="role">notification dot</div></div><div class="hex">#E89545</div></div>
+    <div class="sw"><div class="chip" style="background:#f6cf95"></div><div><div class="name">warn-200</div><div class="role">徽章邊框</div></div><div class="hex">#F6CF95</div></div>
+    <div class="sw"><div class="chip" style="background:#fdf1de"></div><div><div class="name">warn-50</div><div class="role">徽章底 / 提示面板</div></div><div class="hex">#FDF1DE</div></div>
+  </div>
+</section>
+<section>
+  <h4>DANGER — 暖紅 / 錯誤 · 逾時 · 一級嚴重</h4>
+  <div class="grid">
+    <div class="sw"><div class="chip" style="background:#8b2c20"></div><div><div class="name">danger-800</div><div class="role">深色狀態文字</div></div><div class="hex">#8B2C20</div></div>
+    <div class="sw"><div class="chip" style="background:#a83a2c"></div><div><div class="name">danger-700</div><div class="role">grade-1 文字</div></div><div class="hex">#A83A2C</div></div>
+    <div class="sw"><div class="chip" style="background:#c75c4d"></div><div><div class="name">danger-500</div><div class="role">field error / 危險動作</div></div><div class="hex">#C75C4D</div></div>
+    <div class="sw"><div class="chip" style="background:#ecbab2"></div><div><div class="name">danger-200</div><div class="role">徽章邊框</div></div><div class="hex">#ECBAB2</div></div>
+    <div class="sw"><div class="chip" style="background:#fbeae6"></div><div><div class="name">danger-50</div><div class="role">徽章底</div></div><div class="hex">#FBEAE6</div></div>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 18px; background: var(--bg-surface); font-family: var(--font-sans); font-size: var(--fs-sm); }
+  .label { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 10px; }
+  .palette { display: flex; gap: 8px; margin-bottom: 12px; }
+  .sw { flex: 1; height: 44px; border-radius: var(--radius-sm); display: grid; place-items: center; color:#fff; font-size: var(--fs-xs); font-family: var(--font-mono); font-weight: 600; }
+  .legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: var(--fs-xs); }
+  .leg { display: flex; align-items: center; gap: 8px; color: var(--fg-2); }
+  .dot { width: 14px; height: 14px; border-radius: var(--radius-xs); border: 1px solid rgba(0,0,0,.06); }
+</style>
+</head>
+<body>
+<p class="label">ECharts 序列色｜暖意版（不使用預設彩虹色，主色為赭土紅）</p>
+<div class="palette">
+  <div class="sw" style="background:#d97757">#D97757</div>
+  <div class="sw" style="background:#4e9d6c">#4E9D6C</div>
+  <div class="sw" style="background:#e89545">#E89545</div>
+  <div class="sw" style="background:#c75c4d">#C75C4D</div>
+  <div class="sw" style="background:#9876a8">#9876A8</div>
+  <div class="sw" style="background:#4f8cb8">#4F8CB8</div>
+  <div class="sw" style="background:#6a8f5a">#6A8F5A</div>
+  <div class="sw" style="background:#a0917a">#A0917A</div>
+</div>
+<div class="legend">
+  <div class="leg"><span class="dot" style="background:#d97757"></span>chart-1 主序列 / 派案</div>
+  <div class="leg"><span class="dot" style="background:#4e9d6c"></span>chart-2 結案</div>
+  <div class="leg"><span class="dot" style="background:#e89545"></span>chart-3 警示</div>
+  <div class="leg"><span class="dot" style="background:#c75c4d"></span>chart-4 嚴重</div>
+  <div class="leg"><span class="dot" style="background:#9876a8"></span>chart-5 特殊</div>
+  <div class="leg"><span class="dot" style="background:#4f8cb8"></span>chart-6 資訊</div>
+  <div class="leg"><span class="dot" style="background:#6a8f5a"></span>chart-7 中性綠</div>
+  <div class="leg"><span class="dot" style="background:#a0917a"></span>chart-8 中性</div>
+</div>
+<p class="label" style="margin-top:12px">grid #ECDFCA · axis #A0917A</p>
+</body>
+</html>

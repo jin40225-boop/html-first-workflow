@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>Card</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-surface); font-family: var(--font-sans); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sw {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-surface);
+  }
+  .chip { width: 40px; height: 40px; border-radius: var(--radius-xs); border: 1px solid var(--border); }
+  .name { font-size: var(--fs-sm); font-weight: var(--weight-semibold); color: var(--fg-1); }
+  .role { font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; }
+  .hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fg-3); }
+</style>
+</head>
+<body>
+<div class="row">
+  <div class="sw"><div class="chip" style="background:#2d251a"></div><div><div class="name">ink-1</div><div class="role">主要按鈕 / 標題</div></div><div class="hex">#2D251A</div></div>
+  <div class="sw"><div class="chip" style="background:#50412e"></div><div><div class="name">ink-2</div><div class="role">內文文字</div></div><div class="hex">#50412E</div></div>
+  <div class="sw"><div class="chip" style="background:#7a6953"></div><div><div class="name">ink-3</div><div class="role">次級／表頭</div></div><div class="hex">#7A6953</div></div>
+  <div class="sw"><div class="chip" style="background:#a0917a"></div><div><div class="name">ink-muted</div><div class="role">meta／提示</div></div><div class="hex">#A0917A</div></div>
+  <div class="sw"><div class="chip" style="background:#c2b59c"></div><div><div class="name">ink-faint</div><div class="role">disabled</div></div><div class="hex">#C2B59C</div></div>
+  <div class="sw"><div class="chip" style="background:#e1d2b8"></div><div><div class="name">line-strong</div><div class="role">按鈕邊框</div></div><div class="hex">#E1D2B8</div></div>
+  <div class="sw"><div class="chip" style="background:#ecdfca"></div><div><div class="name">line</div><div class="role">預設邊框</div></div><div class="hex">#ECDFCA</div></div>
+  <div class="sw"><div class="chip" style="background:#f4ead7"></div><div><div class="name">surface-3</div><div class="role">chip／mono 底色</div></div><div class="hex">#F4EAD7</div></div>
+  <div class="sw"><div class="chip" style="background:#fdf6e9; border-color:#ecdfca"></div><div><div class="name">surface-2</div><div class="role">soft cream（軟提示底）</div></div><div class="hex">#FDF6E9</div></div>
+  <div class="sw"><div class="chip" style="background:#fbf6ef; border-color:#ecdfca"></div><div><div class="name">bg-app</div><div class="role">頁面背景 (worker)</div></div><div class="hex">#FBF6EF</div></div>
+  <div class="sw"><div class="chip" style="background:#f6efe1; border-color:#ecdfca"></div><div><div class="name">bg-app-admin</div><div class="role">頁面背景 (admin)</div></div><div class="hex">#F6EFE1</div></div>
+  <div class="sw"><div class="chip" style="background:#ffffff; border-color:#ecdfca"></div><div><div class="name">surface</div><div class="role">卡片 / table</div></div><div class="hex">#FFFFFF</div></div>
+</div>
+</body>
+</html>

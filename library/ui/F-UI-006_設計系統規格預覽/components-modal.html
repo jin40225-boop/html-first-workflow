@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 0; background: rgba(45,37,26,.42); min-height: 360px; font-family: var(--font-sans); display: grid; place-items: center; }
+  .modal {
+    width: 520px; background: var(--bg-surface);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-modal); padding: 24px;
+  }
+  .head { display:flex; justify-content:space-between; align-items: flex-start; }
+  .h { font-size: var(--fs-lg); font-weight: 700; color: var(--fg-1); letter-spacing: -.01em; }
+  .sub { font-size: var(--fs-sm); color: var(--fg-muted); margin-top: 6px; }
+  .close {
+    border: 1px solid var(--border-strong); background: var(--bg-surface);
+    padding: 6px 14px; border-radius: var(--radius-pill);
+    font-size: var(--fs-xs); cursor: pointer;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .pane { padding: 14px 16px; border-radius: var(--radius-sm); border: 1px solid; }
+  .pane .l { font-size: var(--fs-xs); letter-spacing: .04em; text-transform: uppercase; }
+  .pane .v { font-size: var(--fs-lg); font-weight: 700; margin-top: 6px; letter-spacing: -.01em; }
+  .pane.curr  { background: var(--bg-surface-2); border-color: var(--border); }
+  .pane.curr .l { color: var(--fg-muted); }
+  .pane.curr .v { color: var(--fg-2); }
+  .pane.next  { background: linear-gradient(180deg, var(--warn-50) 0%, var(--bg-surface) 70%); border-color: var(--warn-200); }
+  .pane.next .l { color: var(--warn-700); }
+  .pane.next .v { color: var(--warn-900); }
+  .actions { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .btn {
+    padding: 12px 18px; font-size: var(--fs-sm);
+    border-radius: var(--radius-pill); text-align: left;
+    cursor: pointer; transition: all 160ms;
+    border: 1px solid; font-family: inherit;
+  }
+  .btn-out { border-color: var(--border-strong); background: var(--bg-surface); color: var(--fg-1); }
+  .btn-out:hover { background: var(--orange-50); border-color: var(--orange-200); }
+  .btn-amb { border-color: var(--warn-300); background: var(--warn-50); color: var(--warn-900); font-weight: 600; }
+  .btn-amb:hover { background: var(--warn-100); }
+</style>
+</head>
+<body>
+  <div class="modal">
+    <div class="head">
+      <div>
+        <div class="h">分級升級確認</div>
+        <div class="sub">陳雅婷 · CA0099_0001</div>
+      </div>
+      <button class="close">稍後</button>
+    </div>
+    <div class="grid2">
+      <div class="pane curr"><div class="l">目前服務分級</div><div class="v">三級</div></div>
+      <div class="pane next"><div class="l">縣府新派案分級</div><div class="v">一級</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-out">維持現有服務分級（三級）</button>
+      <button class="btn btn-amb">升至縣府分級（一級）</button>
+    </div>
+  </div>
+</body>
+</html>

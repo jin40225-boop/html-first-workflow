@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 22px; background: var(--bg-app); font-family: var(--font-sans); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .label { font-size: var(--fs-xs); color: var(--fg-muted); width: 100%; margin: 4px 0 0; }
+  .grade-badge { display: inline-flex; align-items: center; padding: 4px 12px; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .02em; border-radius: var(--radius-pill); white-space: nowrap; border: 1px solid; }
+  .grade-1 { background: var(--grade-1-bg); color: var(--grade-1-fg); border-color: var(--grade-1-bd); }
+  .grade-2 { background: var(--grade-2-bg); color: var(--grade-2-fg); border-color: var(--grade-2-bd); }
+  .grade-3 { background: var(--grade-3-bg); color: var(--grade-3-fg); border-color: var(--grade-3-bd); }
+  .grade-4 { background: var(--grade-4-bg); color: var(--grade-4-fg); border-color: var(--grade-4-bd); }
+  .grade-sp{ background: var(--grade-sp-bg);color: var(--grade-sp-fg);border-color: var(--grade-sp-bd); }
+  .grade-no{ background: var(--grade-no-bg);color: var(--grade-no-fg);border-color: var(--grade-no-bd); }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; font-size: var(--fs-xs); font-weight: 600; border-radius: var(--radius-pill); white-space: nowrap; }
+  .status-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .status-active { background: var(--success-50); color: var(--success-600); }
+  .status-closed { background: var(--bg-surface-2); color: var(--fg-muted); }
+  .status-pending{ background: var(--warn-50); color: var(--warn-700); }
+  .status-other  { background: var(--info-50); color: var(--info-600); }
+
+  h4 { font-size: var(--fs-xs); color: var(--fg-muted); margin: 0 0 10px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  section + section { margin-top: 18px; }
+</style>
+</head>
+<body>
+<section>
+  <h4>個案分級 grade-badge｜紅 / 橘 / 綠 / 藍 / 紫 = 一 / 二 / 三 / 四 / 特殊</h4>
+  <div class="row">
+    <span class="grade-badge grade-1">一級</span>
+    <span class="grade-badge grade-2">二級</span>
+    <span class="grade-badge grade-3">三級</span>
+    <span class="grade-badge grade-4">四級</span>
+    <span class="grade-badge grade-sp">特殊</span>
+    <span class="grade-badge grade-no">未設</span>
+  </div>
+</section>
+<section>
+  <h4>案件狀態 status-badge｜內含發光圓點，柔和 pill 形</h4>
+  <div class="row">
+    <span class="status-badge status-active">在案處遇中</span>
+    <span class="status-badge status-closed">已結案</span>
+    <span class="status-badge status-pending">待認領</span>
+    <span class="status-badge status-pending">待補齊</span>
+    <span class="status-badge status-other">轉外轄</span>
+  </div>
+</section>
+</body>
+</html>

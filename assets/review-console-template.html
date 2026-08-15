@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>協作確認台｜{{專案名稱}}</title>
+<!--
+  ═══════════════════════════════════════════════════════════════
+  軌道 B｜協作確認台　骨架
+  寫作指引：references/review-console.md
+    · 八節順序＝三幕劇，不可調換（1 理解 2 現況 3 計畫 4 規格 ／ 5 矛盾 6 提問 7 決策 ／ 8 成本）
+    · 寫卡之前先建依賴圖（草稿 ≥6 則時必做）——第一用途是砍題，不是裝引擎
+    · 每個選項都要有「→ 影響」與「代價」兩行
+
+  ★ 複製後必改三處：
+    ① <title> 與 header 的標題／版本／日期
+    ② <script> 開頭的 DOC_ID（沒改會跟上一個專案共用瀏覽器草稿，決議會被污染）
+    ③ 每一節的卡片內容
+
+  ★ 連動（依 review-console.md 的三檔門檻決定要不要用）：
+    <div class="dep" data-when="Q1:line-ok" data-do="mute">人話理由（必填）</div>
+    條件：Q1:a ／ Q1:a|b ／ Q1!a ／ A1:x+B2:y
+    效果：mute（本題免答）／recommend:選項值（改推薦）
+    失效的卡會變暗收合，但原因永遠看得見，並附「仍要回答」——絕不把該問的題滅音。
+  ═══════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --bg:#fbf6ef; --panel:#fffdfa; --panel-2:#f6efe6; --ink:#231d18; --ink-2:#6b5d51;
+  --line:#e6dbcd; --line-2:#d4c4b0; --accent:#9c4a2f; --accent-soft:#f6e6df;
+  --ok:#2f6d46; --ok-bg:#e6f1e8; --edit:#9a6a12; --edit-bg:#faeed6;
+  --no:#a83a2c; --no-bg:#f9e6e2; --hold:#4c5d86; --hold-bg:#e8ecf6;
+  --warn:#8a4b1f; --warn-bg:#f9ebdc;
+  --shadow:0 1px 2px rgba(60,40,20,.06),0 8px 24px rgba(60,40,20,.07); --radius:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1b1714; --panel:#241f1a; --panel-2:#2c2620; --ink:#efe7dd; --ink-2:#b0a294;
+  --line:#3a322a; --line-2:#4c4238; --accent:#e08a68; --accent-soft:#3a281f;
+  --ok:#7cc79a; --ok-bg:#1e3527; --edit:#e0b45c; --edit-bg:#3a2f18;
+  --no:#f0897d; --no-bg:#3d211d; --hold:#9db4e0; --hold-bg:#212b3d;
+  --warn:#e0a06a; --warn-bg:#3a2a1c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.4);
+}}
+:root[data-theme="dark"]{
+  --bg:#1b1714; --panel:#241f1a; --panel-2:#2c2620; --ink:#efe7dd; --ink-2:#b0a294;
+  --line:#3a322a; --line-2:#4c4238; --accent:#e08a68; --accent-soft:#3a281f;
+  --ok:#7cc79a; --ok-bg:#1e3527; --edit:#e0b45c; --edit-bg:#3a2f18;
+  --no:#f0897d; --no-bg:#3d211d; --hold:#9db4e0; --hold-bg:#212b3d;
+  --warn:#e0a06a; --warn-bg:#3a2a1c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+
+header{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.hwrap{max-width:1100px;margin:0 auto;padding:13px 22px 12px}
+.htop{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.title h1{margin:0;font-size:20px} .title p{margin:3px 0 0;font-size:13px;color:var(--ink-2)}
+.tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);padding:7px 13px;border-radius:8px;font-size:13.5px;transition:.12s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.08);color:#fff}
+.progress{margin:11px 0 0;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink-2)}
+.bar{flex:1;height:7px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.filters{display:flex;gap:7px;padding:10px 0 0;flex-wrap:wrap}
+.f{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink-2);padding:4px 12px;border-radius:99px;font-size:13px}
+.f.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.jsonly{display:none}
+
+main{max-width:1100px;margin:0 auto;padding:26px 22px 110px}
+.lead{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);padding:18px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
+.lead h2{margin:0 0 8px;font-size:16px} .lead p{margin:.45em 0;font-size:14.5px;color:var(--ink-2)}
+.lead b{color:var(--ink)} .lead code{background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:5px;font-size:13px}
+
+/* ── 集群圖例：讓使用者一眼看到題目怎麼分群、該照什麼順序答 ── */
+.clusters{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 20px;margin-bottom:16px;box-shadow:var(--shadow);font-size:14px}
+.clusters>b{display:block;margin-bottom:8px;font-size:14.5px}
+.clu{display:inline-block;border:1px solid var(--line-2);background:var(--panel-2);
+  border-radius:9px;padding:6px 12px;margin:0 7px 7px 0;font-size:13.5px}
+.clu:hover{border-color:var(--accent);cursor:pointer}
+.clu.on{border-color:var(--accent);background:var(--accent-soft)}
+.clusters small{display:block;margin-top:5px;color:var(--ink-2);font-size:12.5px}
+
+details.gloss{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:0 22px;margin-bottom:32px;box-shadow:var(--shadow)}
+details.gloss summary{cursor:pointer;padding:14px 0;font-size:14.5px;font-weight:600}
+details.gloss dl{margin:0 0 16px;font-size:14px}
+details.gloss dt{font-weight:600;color:var(--accent);margin-top:10px}
+details.gloss dd{margin:2px 0 0;color:var(--ink-2)}
+
+section{margin-bottom:38px}
+.act{margin:0 0 16px;padding:9px 0 0;border-top:2px solid var(--accent);
+  font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.04em}
+.shead{display:flex;align-items:baseline;gap:10px;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.shead h2{margin:0;font-size:17px} .shead span{font-size:13px;color:var(--ink-2)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:18px;box-shadow:var(--shadow);overflow:hidden;border-left:3px solid var(--line-2);transition:border-color .15s,opacity .2s}
+.card[data-mark="ok"]{border-left-color:var(--ok)} .card[data-mark="edit"]{border-left-color:var(--edit)}
+.card[data-mark="no"]{border-left-color:var(--no)} .card[data-mark="hold"]{border-left-color:var(--hold)}
+.card.hide{display:none} .card.flash{outline:2px solid var(--accent);outline-offset:2px}
+.chead{padding:16px 22px 0;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.tag{font-size:11.5px;letter-spacing:.06em;padding:2px 9px;border-radius:99px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--panel-2);white-space:nowrap}
+.tag.q{color:var(--hold);border-color:var(--hold);background:var(--hold-bg)}
+.tag.d{color:var(--edit);border-color:var(--edit);background:var(--edit-bg)}
+.tag.m{color:var(--warn);border-color:var(--warn);background:var(--warn-bg)}
+.tag.need{color:var(--no);border-color:var(--no);background:var(--no-bg)}
+.tag.clu{cursor:pointer}
+.tag.rel{cursor:pointer;color:var(--accent);border-color:var(--accent)}
+.chead h3{margin:0;font-size:16px;flex:1;min-width:200px;line-height:1.55}
+.cid{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;font-weight:600}
+.cbody{padding:9px 22px 4px;font-size:14.5px}
+.cbody p{margin:.5em 0} .cbody ul,.cbody ol{margin:.5em 0;padding-left:1.35em} .cbody li{margin:.3em 0}
+.cbody code{background:var(--panel-2);border:1px solid var(--line);padding:1px 5px;border-radius:5px;font-size:13px}
+.cbody details{margin:.6em 0;border:1px solid var(--line);border-radius:9px;background:var(--panel-2)}
+.cbody details summary{cursor:pointer;padding:9px 13px;font-size:13.5px;font-weight:600}
+.cbody details .dc{padding:0 13px 12px}
+.why{color:var(--ink-2);font-size:13.5px;border-left:2px solid var(--line-2);padding-left:13px;margin-top:11px}
+.find{background:var(--accent-soft);border:1px solid var(--accent);border-radius:9px;padding:11px 14px;margin:.7em 0;font-size:14px}
+.find b{color:var(--accent)}
+.conflict{background:var(--warn-bg);border:1px solid var(--warn);border-radius:9px;padding:11px 14px;margin:.7em 0;font-size:14px}
+.conflict b{color:var(--warn)}
+.gl{border-bottom:1px dotted var(--accent);cursor:help}
+
+/* ── 連動規則：沒有 JS 時就是一行紙本跳題指示，有 JS 時驅動失效／改推薦 ── */
+.dep{margin:.7em 22px;padding:10px 14px;border:1px dashed var(--line-2);border-radius:9px;
+  font-size:13.5px;color:var(--ink-2)}
+.dep::before{content:"連動規則：";font-weight:600}
+.dep.firing{border-style:solid;border-color:var(--hold);background:var(--hold-bg);color:var(--ink)}
+.dep.firing::before{content:"⏸ 本題免答："}
+.dep.firing[data-do^="recommend"]::before{content:"↻ 推薦已調整："}
+.dep a{color:var(--accent)}
+.card[data-dim="1"]{opacity:.62;border-left-style:dashed}
+.card[data-dim="1"] .cbody,.card[data-dim="1"] .olabel,
+.card[data-dim="1"] .opts,.card[data-dim="1"] .foot,
+.card[data-dim="1"] .dep:not(.firing){display:none}
+.card[data-dim="1"] .dep.firing{display:block;opacity:1;margin-bottom:16px}
+.card.stale{outline:2px solid var(--warn);opacity:1}
+.card.stale .dep.firing::before{content:"⚠ 你已經回答過，但這題已失效："}
+.unmute{font-size:12.5px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink-2);
+  padding:3px 11px;border-radius:99px;margin-left:auto}
+.unmute:hover{border-color:var(--accent);color:var(--accent)}
+
+.olabel{padding:6px 22px 0;font-size:13px;color:var(--ink-2);font-weight:600}
+.opts{padding:6px 22px 0;display:grid;gap:9px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);cursor:pointer;transition:.12s}
+.opt:hover{border-color:var(--accent)} .opt input{margin-top:6px;accent-color:var(--accent);flex:none}
+.opt .ot{font-size:14px} .opt .ot b{display:block;line-height:1.5}
+.opt .ot small{display:block;color:var(--ink-2);font-size:13.5px;line-height:1.65;margin-top:2px}
+.opt .im{display:block;margin-top:6px;font-size:13.5px;line-height:1.65}
+.opt .im em{font-style:normal;color:var(--accent);font-weight:600}
+.opt .cost{display:block;margin-top:3px;font-size:13.5px;line-height:1.65;color:var(--ink-2)}
+.opt .cost em{font-style:normal;color:var(--warn);font-weight:600}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.rec{font-size:11.5px;color:#fff;background:var(--accent);border-radius:99px;padding:1px 8px;margin-left:7px;vertical-align:2px;font-weight:400}
+.rec.dyn{background:var(--hold)}
+
+.foot{padding:13px 22px 19px;margin-top:9px;border-top:1px dashed var(--line)}
+.marks{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.mklab{font-size:13px;color:var(--ink-2);margin-right:2px}
+.mk{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink-2);padding:5px 13px;border-radius:99px;font-size:13px;transition:.12s}
+.mk:hover{border-color:currentColor}
+.mk[data-m="ok"].on{background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.mk[data-m="edit"].on{background:var(--edit-bg);color:var(--edit);border-color:var(--edit)}
+.mk[data-m="no"].on{background:var(--no-bg);color:var(--no);border-color:var(--no)}
+.mk[data-m="hold"].on{background:var(--hold-bg);color:var(--hold);border-color:var(--hold)}
+.printmark{display:none;font-size:12.5px;color:var(--ink-2)}
+textarea{width:100%;min-height:58px;resize:vertical;font:inherit;font-size:14px;line-height:1.7;padding:10px 13px;border:1px solid var(--line-2);border-radius:9px;background:var(--panel-2);color:var(--ink);outline:none}
+textarea:focus{border-color:var(--accent);background:var(--panel)}
+textarea::placeholder{color:var(--ink-2);opacity:.75}
+
+.tbl{width:100%;border-collapse:collapse;font-size:14px;margin:.6em 0}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+.tbl th{background:var(--panel-2);font-weight:600;color:var(--ink-2);font-size:13px}
+.scroll{overflow-x:auto}
+.st{font-size:12.5px;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.st.done{background:var(--ok-bg);color:var(--ok)} .st.todo{background:var(--panel-2);color:var(--ink-2);border:1px solid var(--line-2)}
+.st.warn{background:var(--warn-bg);color:var(--warn)}
+
+.submit{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:21px 23px;box-shadow:var(--shadow);border-top:3px solid var(--accent)}
+.submit h2{margin:0 0 4px;font-size:17px} .submit p{margin:0 0 12px;font-size:13.5px;color:var(--ink-2)}
+.subrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.hint{margin-top:12px;font-size:13px;color:var(--ink-2);background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 14px}
+.hint.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--ink)}
+
+#jump{position:fixed;right:20px;bottom:22px;z-index:40;display:none;flex-direction:column;gap:6px;align-items:flex-end}
+#jump button{background:var(--panel);border:1px solid var(--line-2);color:var(--ink);border-radius:99px;box-shadow:var(--shadow);font-size:13.5px;padding:8px 15px}
+#jump button:hover{border-color:var(--accent);color:var(--accent)}
+#jump .rd{width:40px;height:40px;padding:0;font-size:15px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,14px);background:var(--ink);color:var(--bg);padding:11px 21px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.24s;z-index:50;box-shadow:var(--shadow);max-width:80vw;text-align:center;display:flex;gap:12px;align-items:center;justify-content:center}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:99px;padding:2px 11px;font-size:13px}
+
+@media (max-width:640px){.hwrap,main{padding-left:14px;padding-right:14px}.chead,.cbody,.opts,.olabel,.foot{padding-left:15px;padding-right:15px}.dep{margin-left:15px;margin-right:15px}#jump{right:10px;bottom:12px}}
+@media print{
+  header{position:static}
+  .tools,.marks,.filters,.subrow,#toast,#jump,.unmute{display:none}
+  .printmark{display:block}
+  body{background:#fff}
+  .card{break-inside:avoid;display:block!important}
+  .card[data-dim="1"]{opacity:1}
+  .card[data-dim="1"] .cbody,.card[data-dim="1"] .olabel,.card[data-dim="1"] .opts{display:block}
+  details{display:block} details>summary{list-style:none}
+  textarea{border:0;padding:0;background:transparent;height:auto;min-height:0;overflow:visible;resize:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="htop">
+      <div class="title">
+        <h1>協作確認台｜{{專案名稱}}</h1>
+        <p>{{版本}}　·　{{日期}}　·　共 {{N}} 則，其中 {{M}} 則標「需要你回答」</p>
+      </div>
+      <div class="tools jsonly">
+        <button class="btn" id="btnTheme">◐ 主題</button>
+        <button class="btn" id="btnImport">匯入回覆</button>
+        <button class="btn" id="btnExport">匯出 JSON</button>
+        <button class="btn primary" id="btnCopy">複製回覆給 AI</button>
+      </div>
+    </div>
+    <div class="progress jsonly"><span id="pTxt">尚未開始</span><div class="bar"><span id="pBar"></span></div><span id="pSave">草稿自動保存</span></div>
+    <div class="filters jsonly" id="filters">
+      <button class="f on" data-f="all">全部 <span data-c="all"></span></button>
+      <button class="f" data-f="todo">未處理 <span data-c="todo"></span></button>
+      <button class="f" data-f="need">需要我回答 <span data-c="need"></span></button>
+      <button class="f" data-f="done">已標記 <span data-c="done"></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="lead">
+    <h2>{{一句話說這頁在確認什麼}}</h2>
+    <p>{{我做了哪些功課：查了什麼、讀了什麼、查證了什麼}}</p>
+    <p>這一頁的順序是：<b>先讓你看懂我要做什麼</b>（理解→現況→計畫→規格），<b>再問你卡住的地方</b>（矛盾→提問→決策），<b>最後講代價</b>（成本）。
+    每個選項都寫了「→ 影響」與「代價」，挑一個就好，不用打字。沒動的＝沒意見，照我推薦的做。</p>
+    <p><b>{{最關鍵的兩三則編號}}。</b></p>
+  </div>
+
+  <!-- 集群圖例：需決策卡 ≥5 才放。箭頭＝答完左邊，右邊可能自動免答或改推薦 -->
+  <nav class="clusters">
+    <b>這一頁的題目分成幾群，建議照箭頭順序答：</b>
+    <span class="clu" data-clu="{{群代號}}">{{🚦 群名稱}}｜{{Q1 → D1 → P1}}</span>
+    <span class="clu" data-clu="{{群代號}}">{{💰 群名稱}}｜{{M2 → C1}}</span>
+    <small>點群名可以只看那一群。答完前面的題，後面被連動影響的會自動變暗或改推薦。</small>
+  </nav>
+
+  <details class="gloss">
+    <summary>📖 詞彙小抄（看到不懂的名詞先翻這裡）</summary>
+    <dl>
+      <dt>{{術語}}</dt><dd>{{用生活比喻解釋，不要用另一個術語解釋術語}}</dd>
+    </dl>
+  </details>
+
+<div id="doc">
+
+<!--
+  ═══ 八節順序＝三幕劇，不可調換 ═══
+  第一幕「我懂了什麼、要做什麼」：1 理解 → 2 現況 → 3 計畫 → 4 規格
+  第二幕「我卡在哪、要你定」：  5 矛盾 → 6 提問 → 7 決策
+  第三幕「代價」：              8 成本
+  為什麼：使用者沒看到你打算怎麼做，就無法判斷你問的問題重不重要、也無法拍板。
+  每節下面各留一張示範卡；要多幾則就複製整個 <article>，記得改 id 與 data-id。
+-->
+
+<div class="act">第一幕　我懂了什麼、要做什麼</div>
+
+<!-- ══ 1 理解 ══ -->
+<section data-sec="understand">
+<div class="shead"><h2>一、我對你需求的理解</h2><span>理解錯的話後面全錯，這節擺第一</span></div>
+
+<article class="card" id="item-U1" data-id="U1" data-type="理解" data-need="1"
+         data-cluster="{{群代號}}" data-title="{{卡片標題}}">
+  <div class="chead"><span class="cid">U1</span><span class="tag">理解</span><span class="tag need">需要你回答</span>
+    <h3>{{我聽成的是什麼}}</h3></div>
+  <div class="cbody">
+    <div class="scroll"><table class="tbl">
+      <tr><th>你說的</th><th>我聽成的規則</th></tr>
+      <tr><td>{{引用原話}}</td><td>{{可執行的規則，不是複述}}</td></tr>
+    </table></div>
+    <div class="why"><b>為什麼這樣判斷：</b>{{⋯}}</div>
+  </div>
+  <div class="olabel">我理解對了嗎？</div>
+  <div class="opts">
+    <label class="opt" data-opt="yes"><input type="radio" name="opt-U1" value="yes">
+      <span class="ot"><b>對，就是這樣<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="partly"><input type="radio" name="opt-U1" value="partly">
+      <span class="ot"><b>大致對，但有一處要修（下面說）</b>
+      <span class="im"><em>→ 影響：</em>我依你的修正改寫。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<!-- ══ 2 現況 ══ -->
+<section data-sec="now">
+<div class="shead"><h2>二、現況</h2><span>我做到哪、查證到什麼、有沒有先斬後奏</span></div>
+
+<article class="card" id="item-N1" data-id="N1" data-type="現況"
+         data-cluster="{{群代號}}" data-title="{{卡片標題}}">
+  <div class="chead"><span class="cid">N1</span><span class="tag">現況</span>
+    <h3>{{一句話講完，不用問號結尾}}</h3></div>
+  <div class="cbody">
+    <div class="scroll"><table class="tbl">
+      <tr><th>項目</th><th>狀態</th><th>備註</th></tr>
+      <tr><td>{{東西}}</td><td><span class="st done">已完成</span></td><td>{{查證到的事實，不是宣稱}}</td></tr>
+      <tr><td>{{東西}}</td><td><span class="st warn">未完成</span></td><td>{{⋯}}</td></tr>
+      <tr><td>{{東西}}</td><td><span class="st todo">未開始</span></td><td>{{⋯}}</td></tr>
+    </table></div>
+    <div class="find"><b>我實際查證的事：</b>{{別只寫「文件說有」，寫你去硬碟／程式碼裡確認的結果}}</div>
+    <div class="why"><b>為什麼這樣判斷：</b>{{⋯}}</div>
+  </div>
+  <div class="olabel">這個現況？</div>
+  <div class="opts">
+    <label class="opt" data-opt="ok"><input type="radio" name="opt-N1" value="ok">
+      <span class="ot"><b>正確，往下走<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>無。</span></span></label>
+    <label class="opt" data-opt="wrong"><input type="radio" name="opt-N1" value="wrong">
+      <span class="ot"><b>現況有誤（下面說）</b>
+      <span class="im"><em>→ 影響：</em>我重新盤點。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<!-- ══ 3 計畫 ══ -->
+<section data-sec="plan">
+<div class="shead"><h2>三、我打算怎麼做</h2><span>先給你看計畫，後面的提問與拍板才有依據</span></div>
+
+<article class="card" id="item-P1" data-id="P1" data-type="計畫"
+         data-cluster="{{群代號}}" data-rel="{{U1}}" data-title="{{計畫標題}}">
+  <div class="chead"><span class="cid">P1</span><span class="tag">計畫</span>
+    <h3>{{幾步，使用者要出現在第幾步}}</h3></div>
+  <div class="cbody">
+    <div class="scroll"><table class="tbl">
+      <tr><th>步驟</th><th>誰做</th><th>驗收點（怎麼知道做好了）</th></tr>
+      <tr><td>1. {{⋯}}</td><td>{{你／我}}</td><td>{{可以驗證的具體結果，不是「完成」}}</td></tr>
+      <tr><td>2. {{⋯}}</td><td>{{⋯}}</td><td>{{⋯}}</td></tr>
+    </table></div>
+    <div class="why"><b>為什麼這樣排：</b>{{哪一步是關鍵、為什麼排在那裡}}</div>
+  </div>
+  <!-- 計畫卡最常見「假設 X 選了 Y」的散文前置——一律改寫成機器讀得到的連動規則 -->
+  <div class="dep" data-when="{{U1:partly}}" data-do="mute">
+    {{因為你在 U1 說理解有出入——這份計畫要重寫，先不用看。}}
+  </div>
+  <div class="olabel">順序？</div>
+  <div class="opts">
+    <label class="opt" data-opt="ok"><input type="radio" name="opt-P1" value="ok">
+      <span class="ot"><b>照這個順序<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="other"><input type="radio" name="opt-P1" value="other">
+      <span class="ot"><b>順序要調（下面說）</b>
+      <span class="im"><em>→ 影響：</em>依你的安排。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<!-- ══ 4 規格與元件 ══ -->
+<section data-sec="spec">
+<div class="shead"><h2>四、規格與元件</h2><span>計畫要用到什麼，緊接著計畫看最順</span></div>
+
+<article class="card" id="item-S1" data-id="S1" data-type="規格"
+         data-cluster="{{群代號}}" data-rel="{{P1}}" data-title="{{規格標題}}">
+  <div class="chead"><span class="cid">S1</span><span class="tag">規格</span>
+    <h3>{{沿用什麼、要新寫什麼}}</h3></div>
+  <div class="cbody">
+    <details><summary>▸ 可直接沿用的（點開看清單）</summary><div class="dc">
+      <p>{{列出實際查證過的檔案與大小，不要只寫「有現成的」}}</p>
+    </div></details>
+    <details><summary>▸ 真正要新寫的</summary><div class="dc">
+      <ul><li>{{⋯}}</li></ul>
+    </div></details>
+    <div class="why"><b>為什麼放這一則：</b>{{它是工期估算的依據，攤出來使用者才能質疑估算}}</div>
+  </div>
+  <div class="olabel">這份清單？</div>
+  <div class="opts">
+    <label class="opt" data-opt="ok"><input type="radio" name="opt-S1" value="ok">
+      <span class="ot"><b>沒問題<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>照這個清單施工。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+    <label class="opt" data-opt="more"><input type="radio" name="opt-S1" value="more">
+      <span class="ot"><b>有東西漏了（下面說）</b>
+      <span class="im"><em>→ 影響：</em>補進去並重估工期。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<div class="act">第二幕　我卡在哪、要你定</div>
+
+<!-- ══ 5 矛盾 ══ -->
+<section data-sec="conflict">
+<div class="shead"><h2>五、矛盾</h2><span>我知道但還沒解決的衝突——這節最容易被省略，也最值錢</span></div>
+
+<article class="card" id="item-M1" data-id="M1" data-type="矛盾" data-need="1"
+         data-cluster="{{群代號}}" data-title="{{矛盾標題}}">
+  <div class="chead"><span class="cid">M1</span><span class="tag m">矛盾</span><span class="tag need">需要你回答</span>
+    <h3>{{「A」 vs 「B」}}</h3></div>
+  <div class="cbody">
+    <div class="conflict"><b>衝突：</b>{{兩邊原文都貼出來。可能是使用者自己說過的兩句話、
+      使用者的規則跟工具現實、文件之間、或 AI 自己編的數字沒根據}}</div>
+    <p>{{我的判讀}}</p>
+    <div class="why"><b>為什麼這樣判斷：</b>{{哪一邊不能讓步、哪一邊可以講究}}</div>
+  </div>
+  <div class="olabel">怎麼調和？</div>
+  <div class="opts">
+    <label class="opt" data-opt="a"><input type="radio" name="opt-M1" value="a">
+      <span class="ot"><b>{{調和方案，不能只把矛盾丟出來}}<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="b"><input type="radio" name="opt-M1" value="b">
+      <span class="ot"><b>{{另一種解法}}</b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<!-- ══ 6 提問：只放「只有使用者知道」的事。查得到的一律自己查完提案 ══ -->
+<section data-sec="ask">
+<div class="shead"><h2>六、我要問你的</h2><span>只有你知道的事，其餘我都自己查完提案了</span></div>
+
+<article class="card" id="item-Q1" data-id="Q1" data-type="提問" data-need="1"
+         data-cluster="{{群代號}}" data-rel="{{D1}}" data-title="{{問題標題}}">
+  <div class="chead"><span class="cid">Q1</span><span class="tag q">提問</span><span class="tag need">需要你回答</span>
+    <h3>{{問題}}</h3></div>
+  <div class="cbody">
+    <p>{{為什麼這件事我查不到、它會影響什麼技術決定}}</p>
+    <div class="why"><b>為什麼非問不可：</b>{{說明這是少數只有他知道的事}}</div>
+  </div>
+  <div class="olabel">{{把候選答案列出來，不要只丟問號}}</div>
+  <div class="opts">
+    <label class="opt" data-opt="a"><input type="radio" name="opt-Q1" value="a">
+      <span class="ot"><b>{{候選答案一}}</b>
+      <span class="im"><em>→ 影響：</em>{{這個答案會導致什麼技術決定。若提到別題，記得回去補一條 .dep}}</span>
+      <span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="b"><input type="radio" name="opt-Q1" value="b">
+      <span class="ot"><b>{{候選答案二}}</b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="選項都不對的話，你的答案是⋯"></textarea></div>
+</article>
+</section>
+
+<!-- ══ 7 決策 ══ -->
+<section data-sec="decide">
+<div class="shead"><h2>七、需要你拍板的</h2><span>都是我查完功課後的提案</span></div>
+
+<article class="card" id="item-D1" data-id="D1" data-type="決策" data-need="1"
+         data-cluster="{{群代號}}" data-rel="{{Q1 P1}}" data-title="{{決策標題}}">
+  <div class="chead"><span class="cid">D1</span><span class="tag d">決策</span><span class="tag need">需要你回答</span>
+    <h3>{{要拍板的是什麼}}</h3></div>
+  <div class="cbody">
+    <p>{{背景與關鍵事實，表格優先於段落}}</p>
+    <div class="why"><b>為什麼這樣判斷：</b>{{為什麼推薦那一個}}</div>
+  </div>
+  <div class="dep" data-when="{{Q1:a}}" data-do="mute">
+    {{因為你在 Q1 說了⋯——這題的前提不存在了，不用答。}}
+  </div>
+  <div class="dep" data-when="{{Q1:b}}" data-do="recommend:c">
+    {{因為你在 Q1 說了⋯——推薦從「選項一」改成「選項三」，理由是⋯}}
+  </div>
+  <div class="olabel">{{問法}}</div>
+  <div class="opts">
+    <label class="opt" data-opt="a"><input type="radio" name="opt-D1" value="a">
+      <span class="ot"><b>{{選項一}}<span class="rec" data-orig>我推薦</span></b><small>{{⋯}}</small>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="b"><input type="radio" name="opt-D1" value="b">
+      <span class="ot"><b>{{選項二}}</b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+    <label class="opt" data-opt="c"><input type="radio" name="opt-D1" value="c">
+      <span class="ot"><b>{{選項三，最多四個}}</b>
+      <span class="im"><em>→ 影響：</em>{{⋯}}</span><span class="cost"><em>代價：</em>{{⋯}}</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+<div class="act">第三幕　代價</div>
+
+<!-- ══ 8 成本：口徑見 references/cost-and-tradeoffs.md ══ -->
+<section data-sec="cost">
+<div class="shead"><h2>八、成本</h2><span>含每一項風險的對策</span></div>
+
+<article class="card" id="item-C1" data-id="C1" data-type="成本"
+         data-cluster="{{群代號}}" data-rel="{{D1}}" data-title="{{成本標題}}">
+  <div class="chead"><span class="cid">C1</span><span class="tag">成本</span>
+    <h3>{{要花什麼，以及風險怎麼擋}}</h3></div>
+  <div class="cbody">
+    <div class="scroll"><table class="tbl">
+      <tr><th>項目</th><th>估計</th><th>說明</th></tr>
+      <tr><td><b>你的時間</b></td><td><b>{{⋯}}</b></td><td>{{最稀缺的資源，放第一列}}</td></tr>
+      <tr><td><b>維護負擔</b></td><td><b>{{⋯}}</b></td><td>{{做完之後每個月要顧多久}}</td></tr>
+      <tr><td>我的施工</td><td>{{幾輪}}</td><td>{{⋯}}</td></tr>
+      <tr><td>外部費用</td><td>{{每月 X 元／每年 Y 元}}</td><td>{{月費年費都要寫}}</td></tr>
+    </table></div>
+    <p><b>成本與需求衝突時的三條路（只有真的碰到才寫這一段）：</b></p>
+    <div class="scroll"><table class="tbl">
+      <tr><th>路線</th><th>做什麼</th><th>會少什麼</th></tr>
+      <tr><td><b>降規格</b></td><td>{{降頻率、降精度、縮範圍}}</td><td>{{⋯}}</td></tr>
+      <tr><td><b>改做法</b></td><td>{{換技術路徑達成同樣目的——最常被忽略但通常最划算}}</td><td>{{⋯}}</td></tr>
+      <tr><td><b>付費升級</b></td><td>{{⋯}}</td><td>{{不會少功能，只是要錢}}</td></tr>
+    </table></div>
+    <p><b>風險與對策（每一項都要有對策，沒對策的不准列上來當免責聲明）：</b></p>
+    <div class="scroll"><table class="tbl">
+      <tr><th>風險</th><th>我的對策</th></tr>
+      <tr><td>{{⋯}}</td><td>{{具體到可以驗收，不是「會注意」}}</td></tr>
+    </table></div>
+    <div class="why"><b>為什麼這樣排：</b>{{⋯}}</div>
+  </div>
+  <div class="olabel">成本與對策？</div>
+  <div class="opts">
+    <label class="opt" data-opt="ok"><input type="radio" name="opt-C1" value="ok">
+      <span class="ot"><b>可接受<span class="rec" data-orig>我推薦</span></b>
+      <span class="im"><em>→ 影響：</em>開工。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+    <label class="opt" data-opt="worry"><input type="radio" name="opt-C1" value="worry">
+      <span class="ot"><b>某項對策我不放心（下面說）</b>
+      <span class="im"><em>→ 影響：</em>我重想那一項。</span><span class="cost"><em>代價：</em>無。</span></span></label>
+  </div>
+  <div class="foot"><div class="marks jsonly"><span class="mklab">整則判斷：</span>
+    <button class="mk" data-m="ok" aria-pressed="false">✓ 同意</button><button class="mk" data-m="edit" aria-pressed="false">✎ 要改</button>
+    <button class="mk" data-m="no" aria-pressed="false">✕ 不要</button><button class="mk" data-m="hold" aria-pressed="false">◷ 待議</button></div>
+    <div class="printmark" data-printmark>〔未標記〕</div>
+    <textarea data-note placeholder="補充、修改或反對的理由⋯（不填代表沒意見）"></textarea></div>
+</article>
+</section>
+
+</div><!-- /#doc -->
+
+  <div class="submit" id="finish">
+    <h2>整體意見與送出</h2>
+    <p>上面沒問到、但你覺得一定要處理的，寫這裡。</p>
+    <textarea id="overall" placeholder="{{給一個具體的例子，讓使用者知道這欄可以寫什麼}}"></textarea>
+    <div class="subrow jsonly">
+      <button class="btn primary" id="btnCopy2">複製回覆給 AI（貼回對話）</button>
+      <button class="btn" id="btnExport2">匯出 JSON 檔</button>
+      <button class="btn" id="btnPrint">列印／存 PDF</button>
+      <button class="btn" id="btnClear">清空重來</button>
+    </div>
+    <div class="hint" id="hintNormal">
+      <b>兩種回法：</b>① <b>複製回覆給 AI</b> → 回對話 <code>Ctrl+V</code>（最快）。
+      ② <b>匯出 JSON</b> → 存到 <code>Downloads</code> → 說一聲我去讀。<br>
+      你打的字即時存在這台電腦的瀏覽器裡，關掉再開還在；<b>換瀏覽器或清快取就會不見</b>，記得匯出或複製。
+    </div>
+    <div class="hint warn" id="hintNoJS">
+      <b>這個檢視器沒有執行互動功能</b>——內容你全部讀得到（都寫死在檔案裡），連動規則也會直接顯示成一行「若 X 選了 Y，本題免答」的紙本跳題指示。但標記按鈕與匯出鍵不會動。
+      要標記的話，用檔案總管找到這個 .html 檔，<b>按右鍵 →「開啟檔案」→ 選 Chrome 或 Edge</b>。
+      不想換也可以：直接在對話裡寫「D1 選第一個、M1 選第一個」就行。
+    </div>
+  </div>
+</main>
+
+<div id="jump">
+  <button class="rd" id="btnUp" title="上一則（K）">▲</button>
+  <button class="rd" id="btnDown" title="下一則（J）">▼</button>
+  <button id="btnNext" title="快捷鍵 N">下一則未處理</button>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ★★ 必改：換成本案專屬代號，否則會跟上一個專案共用瀏覽器草稿 ★★ */
+const DOC_ID="PROJECT-ID-CHANGE-ME", VER="v1";
+
+const KEY="review-console:"+DOC_ID+":"+VER;
+const MARKS={ok:"同意",edit:"要改",no:"不要",hold:"待議"};
+const cards=[...document.querySelectorAll(".card")];
+const byId={}; cards.forEach(c=>byId[c.dataset.id]=c);
+let state={}, filter="all", cluFilter="", cursor=-1;
+
+document.querySelectorAll(".jsonly").forEach(el=>el.style.display="");
+document.getElementById("jump").style.display="flex";
+document.getElementById("hintNoJS").style.display="none";
+
+const meta=c=>({id:c.dataset.id,type:c.dataset.type,title:c.dataset.title,need:c.dataset.need==="1"});
+const touched=id=>{const s=state[id]||{};return !!(s.mark||s.choice||(s.note||"").trim())};
+const optLabel=(c,v)=>{
+  const o=c.querySelector('.opt[data-opt="'+CSS.escape(v)+'"] .ot b');
+  return o?o.textContent.replace("我推薦","").replace("連動後推薦","").trim():v;
+};
+function set(id,k,v){(state[id]=state[id]||{})[k]=v}
+
+/* ───────── 連動引擎 ─────────
+   condState 回傳 true=成立／false=不成立／null=前置還沒答（不觸發任何效果） */
+function condState(expr){
+  let known=true;
+  for(const term of expr.split("+")){
+    const neg=term.indexOf("!")>-1;
+    const parts=neg?term.split("!"):term.split(":");
+    const id=parts[0].trim(), vals=(parts[1]||"").trim();
+    const ch=(state[id]||{}).choice;
+    if(!ch){known=false;continue}
+    const hit=vals.split("|").indexOf(ch)>-1;
+    if(neg?hit:!hit) return false;
+  }
+  return known?true:null;
+}
+const depsOf=c=>[...c.querySelectorAll(".dep")];
+const firing=c=>depsOf(c).filter(d=>condState(d.dataset.when)===true);
+const isMuted=c=>!(state[c.dataset.id]||{}).force && firing(c).some(d=>d.dataset.do==="mute");
+const activeCards=()=>cards.filter(c=>!isMuted(c));
+function effectiveRec(c){
+  const r=firing(c).find(d=>(d.dataset.do||"").indexOf("recommend:")===0);
+  return r?{opt:r.dataset.do.slice(10),why:r.textContent.trim()}:null;
+}
+/* 未表示意見時，AI 該照哪個選項做——連動會改寫推薦，匯出必須快照當下生效的那個 */
+function liveRecLabel(c){
+  const r=effectiveRec(c);
+  if(r) return optLabel(c,r.opt);
+  const orig=c.querySelector(".rec[data-orig]");
+  if(!orig) return null;
+  const b=orig.closest("b");
+  return b?b.textContent.replace("我推薦","").trim():null;
+}
+function renderDeps(c){
+  depsOf(c).forEach(d=>d.classList.toggle("firing",condState(d.dataset.when)===true));
+  const muted=isMuted(c);
+  c.dataset.dim=muted?"1":"";
+  c.classList.toggle("stale",muted&&touched(c.dataset.id));
+  /* 失效卡：常駐「仍要回答」，避免錯誤的 mute 把該問的題滅音 */
+  let btn=c.querySelector(".unmute");
+  if(muted&&!btn){
+    btn=document.createElement("button");
+    btn.className="unmute"; btn.type="button";
+    btn.textContent=(state[c.dataset.id]||{}).force?"改回免答":"仍要回答";
+    btn.addEventListener("click",()=>{
+      set(c.dataset.id,"force",!(state[c.dataset.id]||{}).force);
+      cards.forEach(renderDeps); save(); refresh();
+    });
+    c.querySelector(".chead").appendChild(btn);
+  }
+  if(!muted&&btn&&!(state[c.dataset.id]||{}).force) btn.remove();
+  /* 連動改推薦：原推薦徽章讓位 */
+  const rec=effectiveRec(c);
+  c.querySelectorAll(".rec[data-orig]").forEach(s=>s.style.display=rec?"none":"");
+  c.querySelectorAll(".rec.dyn").forEach(s=>s.remove());
+  if(rec){
+    const b=c.querySelector('.opt[data-opt="'+CSS.escape(rec.opt)+'"] .ot b');
+    if(b){const s=document.createElement("span");s.className="rec dyn";s.textContent="連動後推薦";b.appendChild(s)}
+  }
+}
+/* 卡頭的集群徽章與相關徽章（靜態屬性 → 可點的導航） */
+function decorate(c){
+  const h=c.querySelector(".chead h3");
+  if(c.dataset.cluster&&!c.querySelector(".tag.clu")){
+    const s=document.createElement("span");
+    s.className="tag clu"; s.textContent="◎ "+c.dataset.cluster;
+    s.addEventListener("click",()=>{cluFilter=cluFilter===c.dataset.cluster?"":c.dataset.cluster;applyFilter()});
+    h.parentNode.insertBefore(s,h);
+  }
+  if(c.dataset.rel&&!c.querySelector(".tag.rel")){
+    c.dataset.rel.split(/\s+/).filter(Boolean).forEach(id=>{
+      if(!byId[id]) return;
+      const s=document.createElement("span");
+      s.className="tag rel"; s.textContent="↔ "+id;
+      s.addEventListener("click",()=>focusCard(byId[id]));
+      h.parentNode.appendChild(s);
+    });
+  }
+}
+
+function render(c){
+  const id=c.dataset.id, st=state[id]||{};
+  c.dataset.mark=st.mark||"";
+  c.querySelectorAll(".mk").forEach(b=>{
+    const on=b.dataset.m===st.mark;
+    b.classList.toggle("on",on); b.setAttribute("aria-pressed",on?"true":"false");
+  });
+  c.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",o.dataset.opt===st.choice));
+  c.querySelectorAll('input[type=radio]').forEach(r=>{r.checked=(r.value===st.choice)});
+  const n=c.querySelector("[data-note]"); if(n&&st.note!=null&&n.value!==st.note) n.value=st.note;
+  const pm=c.querySelector("[data-printmark]");
+  if(pm){
+    const bits=[];
+    if(isMuted(c)) bits.push("因連動免答");
+    if(st.mark) bits.push(MARKS[st.mark]);
+    if(st.choice) bits.push("選："+optLabel(c,st.choice));
+    pm.textContent=bits.length?"〔"+bits.join("／")+"〕":"〔未標記〕";
+  }
+}
+function refresh(){
+  const act=activeCards();
+  const n=act.filter(c=>touched(c.dataset.id)).length, total=act.length;
+  const muted=cards.length-total;
+  const needAll=act.filter(c=>meta(c).need);
+  const pending=needAll.filter(c=>!touched(c.dataset.id)).length;
+  document.getElementById("pBar").style.width=(total?n/total*100:0)+"%";
+  document.getElementById("pTxt").textContent=
+    (n===0?"尚未開始":"已處理 "+n+"/"+total)
+    +(muted?"（"+muted+" 則因連動免答）":"")
+    +(pending?"　·　還有 "+pending+" 則必答沒回":(n?"　·　必答題已回完":""));
+  const counts={all:cards.length,todo:total-n,need:needAll.length,done:n};
+  document.querySelectorAll("[data-c]").forEach(el=>el.textContent="("+counts[el.dataset.c]+")");
+  applyFilter();
+}
+function visible(c){
+  if(cluFilter&&c.dataset.cluster!==cluFilter) return false;
+  if(filter==="todo") return !touched(c.dataset.id)&&!isMuted(c);
+  if(filter==="need") return meta(c).need&&!isMuted(c);
+  if(filter==="done") return touched(c.dataset.id);
+  return true;
+}
+function applyFilter(){
+  document.querySelectorAll(".f").forEach(b=>b.classList.toggle("on",b.dataset.f===filter));
+  document.querySelectorAll(".clu").forEach(b=>b.classList.toggle("on",b.dataset.clu===cluFilter));
+  cards.forEach(c=>c.classList.toggle("hide",!visible(c)));
+  document.querySelectorAll("section[data-sec]").forEach(s=>{
+    s.style.display=[...s.querySelectorAll(".card")].some(c=>!c.classList.contains("hide"))?"":"none";
+  });
+}
+const shown=()=>cards.filter(visible);
+function focusCard(c){c.scrollIntoView({behavior:"smooth",block:"center"});c.classList.add("flash");setTimeout(()=>c.classList.remove("flash"),1200)}
+function step(d){const l=shown(); if(!l.length) return toast("這個篩選下沒有項目"); cursor=Math.max(0,Math.min(l.length-1,cursor+d)); focusCard(l[cursor])}
+function nextTodo(){
+  const cur=cursor>=0?shown()[cursor]:null;
+  const pool=cards.filter(c=>!touched(c.dataset.id)&&!isMuted(c));
+  if(!pool.length) return toast("要你處理的都處理完了");
+  /* 同集群優先，讓相關的題連著答 */
+  let t=null;
+  if(cur&&cur.dataset.cluster) t=pool.find(c=>c.dataset.cluster===cur.dataset.cluster&&c!==cur);
+  if(!t&&cur) t=pool.find(c=>cards.indexOf(c)>cards.indexOf(cur));
+  t=t||pool[0];
+  filter="all"; cluFilter=""; applyFilter(); cursor=shown().indexOf(t); focusCard(t);
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(state));
+    document.getElementById("pSave").textContent="已存 "+new Date().toLocaleTimeString("zh-TW",{hour12:false});
+  }catch(e){document.getElementById("pSave").textContent="⚠ 無法自動保存，請務必匯出或複製"}
+}
+function load(){try{state=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){state={}}}
+function payload(){
+  const act=activeCards();
+  return {doc:DOC_ID,version:VER,exportedAt:new Date().toISOString(),
+    overall:(document.getElementById("overall").value||"").trim(),
+    items:act.filter(c=>touched(c.dataset.id)).map(c=>{
+      const m=meta(c), s=state[m.id]||{};
+      return {id:m.id,type:m.type,title:m.title,mark:s.mark||null,markLabel:s.mark?MARKS[s.mark]:null,
+        choice:s.choice||null,choiceLabel:s.choice?optLabel(c,s.choice):null,note:(s.note||"").trim()||null};
+    }),
+    muted:cards.filter(isMuted).map(c=>({id:c.dataset.id,title:c.dataset.title,
+      reason:(firing(c).find(d=>d.dataset.do==="mute")||{textContent:""}).textContent.trim()})),
+    untouched:act.filter(c=>!touched(c.dataset.id)).map(c=>({id:c.dataset.id,liveRec:liveRecLabel(c)}))};
+}
+function toMD(){
+  const p=payload();
+  let out="# 確認台回覆："+document.title.replace("協作確認台｜","")+"（"+VER+"）\n產出時間："+new Date().toLocaleString("zh-TW",{hour12:false})+"\n\n";
+  if(!p.items.length&&!p.overall) out+="（我沒有標記任何項目，全部照連動後的推薦做。）\n\n";
+  else{
+    const by={}; p.items.forEach(i=>{(by[i.mark||"none"]=by[i.mark||"none"]||[]).push(i)});
+    const head={no:"❌ 不要這樣做",edit:"✎ 要改",hold:"◷ 待議",ok:"✓ 同意／已選定",none:"◇ 有補充（未標記）"};
+    ["no","edit","hold","ok","none"].forEach(k=>{
+      if(!by[k]) return;
+      out+="## "+head[k]+"\n";
+      by[k].forEach(i=>{
+        out+="- **"+i.id+"｜"+i.title+"**\n";
+        if(i.choiceLabel) out+="  - 選擇："+i.choiceLabel+"\n";
+        if(i.note) out+="  - 我的回覆："+i.note.replace(/\n/g,"\n    ")+"\n";
+      });
+      out+="\n";
+    });
+    if(p.overall) out+="## 整體意見\n"+p.overall+"\n\n";
+  }
+  if(p.muted.length){
+    out+="## ⏸ 因我的選擇而免答（不用處理）\n";
+    p.muted.forEach(m=>{out+="- **"+m.id+"｜"+m.title+"** — "+m.reason+"\n"});
+    out+="\n";
+  }
+  if(p.untouched.length){
+    out+="## 未表示意見（＝照「連動後」的推薦做）\n";
+    p.untouched.forEach(u=>{out+="- "+u.id+(u.liveRec?"（目前推薦："+u.liveRec+"）":"")+"\n"});
+    out+="\n";
+  }
+  out+="---\n## 給 AI 的驗收條件（不符合的直接退回重做）\n";
+  out+="1. 依上面每一則的「選擇」施工；未表示意見的項目照上面括號裡「目前推薦」的那個做——那是連動後的結果，不是原始推薦。\n";
+  out+="2. 標「不要」的項目不得以任何形式保留。\n";
+  out+="3. 標「待議」的項目不得推進，改做不受它影響的部分，並在下一版確認台重新提案。\n";
+  out+="4. 標為「因我的選擇而免答」的項目不得再問一次，也不得在下一版重新出現。\n";
+  out+="5. 動手前先說明「這次會改哪些檔案」，做完附四行版本區塊（資料夾／檔案／git／預覽網址）。\n";
+  out+="6. 成本與需求衝突時要主動預警，並攤開三條路（降規格／改做法／付費升級），各寫清楚少什麼、多少錢，並推薦一條。不是硬塞免費版。\n";
+  out+="7. 交付訊息不得重述本確認台裡的任何提問、選項或發現（單一提問通道）。\n";
+  out+="8. 下一版確認台動筆前先建依賴圖（review-console.md 六步），不得再出現互相重複的題。\n";
+  out+="9. 交付前跑 scripts/validate_html.py，並把最後一行 validate 結果貼進交付訊息；未通過不得交付。\n";
+  return out;
+}
+function copyMD(){
+  const txt=toMD(), done=()=>toast("已複製（含驗收條件），回對話按 Ctrl+V 貼上");
+  if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(txt).then(done).catch(()=>fb(txt,done));
+  else fb(txt,done);
+}
+function fb(txt,done){
+  const t=document.createElement("textarea");
+  t.value=txt;t.style.position="fixed";t.style.opacity="0";
+  document.body.appendChild(t);t.select();
+  try{document.execCommand("copy");done()}catch(e){toast("複製失敗，請改用「匯出 JSON」")}
+  document.body.removeChild(t);
+}
+function exportJSON(){
+  const b=new Blob([JSON.stringify(payload(),null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download="確認台回覆_"+DOC_ID+"_"+VER+".json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast("已匯出到 Downloads，回對話說一聲我就去讀");
+}
+function importJSON(){
+  const f=document.createElement("input");f.type="file";f.accept=".json";
+  f.onchange=async()=>{
+    try{
+      const d=JSON.parse(await f.files[0].text());
+      state={};
+      (d.items||[]).forEach(i=>{state[i.id]={mark:i.mark,choice:i.choice,note:i.note||""}});
+      document.getElementById("overall").value=d.overall||"";
+      document.querySelectorAll("input[type=radio]").forEach(r=>r.checked=false);
+      document.querySelectorAll("[data-note]").forEach(t=>t.value="");
+      cards.forEach(c=>{render(c);renderDeps(c)}); save(); refresh(); toast("已載入先前的回覆");
+    }catch(e){toast("讀不到這個檔，格式可能不對")}
+  };
+  f.click();
+}
+/* 不用 confirm()：部分嵌入檢視器會直接擋掉，按了沒反應。改成按兩次。 */
+let clearArmed=0;
+function clearAll(){
+  const b=document.getElementById("btnClear");
+  if(!clearArmed){
+    clearArmed=1; b.textContent="再按一次＝真的清空";
+    setTimeout(()=>{clearArmed=0;b.textContent="清空重來"},4000);
+    return;
+  }
+  clearArmed=0; b.textContent="清空重來";
+  state={}; try{localStorage.removeItem(KEY)}catch(e){}
+  document.querySelectorAll("input[type=radio]").forEach(r=>r.checked=false);
+  document.querySelectorAll("textarea").forEach(t=>t.value="");
+  cards.forEach(c=>{render(c);renderDeps(c)}); refresh(); toast("已清空");
+}
+function toggleTheme(){
+  const c=document.documentElement.getAttribute("data-theme");
+  const n=c==="dark"?"light":c==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",n);
+  try{localStorage.setItem("review-console:theme",n)}catch(e){}
+}
+let tid;
+function toast(m,jumpTo){
+  const el=document.getElementById("toast");
+  el.textContent=m;
+  if(jumpTo&&byId[jumpTo]){
+    const b=document.createElement("button");
+    b.textContent="跳到 "+jumpTo+" ▸";
+    b.addEventListener("click",()=>{focusCard(byId[jumpTo]);el.classList.remove("show")});
+    el.appendChild(b);
+  }
+  el.classList.add("show");
+  clearTimeout(tid);tid=setTimeout(()=>el.classList.remove("show"),jumpTo?6000:2800);
+}
+/* 答完一題後，把連動造成的變化講出來——不能默默改 */
+function applyAll(prevMuted){
+  cards.forEach(c=>{render(c);renderDeps(c)});
+  refresh();
+  const now=cards.filter(isMuted).map(c=>c.dataset.id);
+  const added=now.filter(id=>prevMuted.indexOf(id)<0);
+  const removed=prevMuted.filter(id=>now.indexOf(id)<0);
+  if(added.length) toast("連動："+added.join("、")+" 已免答", added[0]);
+  else if(removed.length) toast("連動："+removed.join("、")+" 重新需要回答", removed[0]);
+}
+
+const doc=document.getElementById("doc");
+doc.addEventListener("click",e=>{
+  const b=e.target.closest(".mk"); if(!b) return;
+  const c=b.closest(".card"), id=c.dataset.id;
+  const prev=cards.filter(isMuted).map(x=>x.dataset.id);
+  set(id,"mark",(state[id]||{}).mark===b.dataset.m?null:b.dataset.m);
+  save(); applyAll(prev);
+});
+/* 用 click 而非 change：點已選的選項可以取消，誤觸不必整份清空 */
+doc.addEventListener("click",e=>{
+  const r=e.target.closest('input[type=radio]'); if(!r) return;
+  const c=r.closest(".card"), id=c.dataset.id;
+  const prev=cards.filter(isMuted).map(x=>x.dataset.id);
+  if((state[id]||{}).choice===r.value){ set(id,"choice",null); set(id,"mark",null); }
+  else { set(id,"choice",r.value); if(!(state[id]||{}).mark) set(id,"mark","ok"); }
+  save(); applyAll(prev);
+});
+doc.addEventListener("input",e=>{
+  const t=e.target.closest("[data-note]"); if(!t) return;
+  set(t.closest(".card").dataset.id,"note",t.value); save(); refresh();
+});
+/* 術語注解：桌機 hover 看 title，觸控裝置沒有 hover，改成點一下顯示 */
+doc.addEventListener("click",e=>{
+  const g=e.target.closest(".gl"); if(!g||!g.title) return;
+  toast(g.textContent+"："+g.title);
+});
+document.querySelectorAll(".clu").forEach(b=>b.addEventListener("click",()=>{
+  cluFilter=cluFilter===b.dataset.clu?"":b.dataset.clu; applyFilter();
+}));
+document.getElementById("overall").addEventListener("input",save);
+document.getElementById("filters").addEventListener("click",e=>{
+  const b=e.target.closest(".f"); if(!b) return; filter=b.dataset.f; cursor=-1; applyFilter();
+});
+[["btnCopy",copyMD],["btnCopy2",copyMD],["btnExport",exportJSON],["btnExport2",exportJSON],
+ ["btnImport",importJSON],["btnTheme",toggleTheme],["btnClear",clearAll],
+ ["btnPrint",()=>window.print()],["btnUp",()=>step(-1)],["btnDown",()=>step(1)],["btnNext",nextTodo]
+].forEach(([id,fn])=>{const el=document.getElementById(id); if(el) el.addEventListener("click",fn)});
+addEventListener("keydown",e=>{
+  if(/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if(e.key==="j"||e.key==="J"){step(1);e.preventDefault()}
+  if(e.key==="k"||e.key==="K"){step(-1);e.preventDefault()}
+  if(e.key==="n"||e.key==="N"){nextTodo();e.preventDefault()}
+});
+try{const t=localStorage.getItem("review-console:theme"); if(t) document.documentElement.setAttribute("data-theme",t)}catch(e){}
+load(); cards.forEach(c=>{decorate(c);render(c);renderDeps(c)}); refresh();
+})();
+</script>
+</body>
+</html>
