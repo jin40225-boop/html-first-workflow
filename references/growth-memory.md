@@ -138,3 +138,13 @@ Keep this file practical. Do not store private secrets, temporary bugs, or one-o
 
 ### 2026-08-10 - 既有互動功能不得在改版時順手拿掉
 - Preference: 使用者裁決（家長支持平台 2026-08-10）：場次卡的『點開摺疊看詳細介紹』是既定格式，除非使用者明確要求拿掉，否則任何改版都必須維持。這條的普遍教訓是：把手寫內容改成資料庫驅動時，最容易在『反正資料庫會給』的理由下砍掉互動與聚合機制——但該功能的說明文字往往留著（本例 HomePage/PeerGroupPage 都還寫著『(點開有詳細介紹喔！)』而卡片點不開），變成假功能。改版移除任何互動前，先問『使用者有沒有明確說要拿掉』，沒有就保留；真要拿掉，同一個 commit 必須把承諾該功能的文案一起清乾淨。附帶：還原舊功能時要檢查資料模型接不接得住——本例舊卡的『我們聊什麼』內文在新 schema 裡根本沒有欄位可放。
+
+### 2026-08-17 - .jsonly 用清 inline style 開啟，等於整條工具列永遠不出現
+- Context: 用骨架產出 ai-course-deck 的確認台後，照規矩用 Playwright 實際開來看，發現頂端「複製回覆給 AI／匯出／匯入／主題」工具列、進度列與篩選器在有 JS 的瀏覽器下**完全看不到**。原因：`.jsonly{display:none}` 在樣式表裡排在 `.tools`／`.progress`／`.filters` 之後，同為單一 class 選擇器時後者勝出；而骨架的開啟方式是 `el.style.display=""`——清掉的是 inline style，class 規則原封不動。定義在 `.jsonly` 之後的 `.subrow`、`.marks` 剛好不受影響，所以底部那顆「複製回覆給 AI」還在，主要功能沒斷，這個洞才一直沒被發現。`validate_html.py` 當時 25 項全 PASS——它只檢查「有沒有預設隱藏」，沒檢查「有 JS 時會不會顯示回來」。
+- Preference: 交付前要真的用瀏覽器打開來看，不能只看 validator 全綠。
+- Apply next time: 開啟 `.jsonly` 一律用 `classList.remove("jsonly")`，不要用 `style.display=""`——移除 class 才會讓元素回到它自己的 display 值。已修 `assets/review-console-template.html`，並在 `validate_html.py` 加了一條機器檢查（「有 JS 時 .jsonly 會真的顯示回來」）。更普遍的一課：**漸進增強的「增強」那一半也要驗**。降級路徑（關掉 JS 還讀不讀得到）已經有檢查了，反方向沒有；只驗一半的守門，跟沒驗過的守門是同一種東西。
+
+### 2026-08-17 - 「已複製」的提示是騙人的：execCommand 失敗回 false，不丟例外
+- Context: 使用者把 16 則確認台整份填完，按「複製回覆給 AI」，畫面跳出「已複製」，貼到對話卻是空的——他問「妳這個功能無法使用？」。骨架的退路是 `try{document.execCommand("copy");done()}catch(e){...}`：**被擋時 execCommand 回傳 `false` 而不是丟例外**，所以 catch 永遠不會進去，`done()` 照樣跑，toast 照樣說已複製。內嵌檢視器（非獨立 Chrome）常同時擋掉 `navigator.clipboard` 與 execCommand，兩條路一起斷，而使用者只看得到一句「已複製」。
+- Preference: 回收使用者的作答不可以只有剪貼簿與下載兩條路——兩條都可能被檢視器擋掉，而且擋掉時不一定會報錯。
+- Apply next time: ① 任何 `execCommand` 一律檢查回傳值，`===true` 才算成功。② 必備第三條退路：把回覆整段攤在頁面上的 textarea 並自動全選，讓使用者自己按 Ctrl+C——這條不經過任何權限。③ 常駐一顆「顯示回覆文字（自己複製）」按鈕，不要等失敗才出現。已修 `assets/review-console-template.html`，並在 `validate_html.py` 加了機器檢查。更普遍的一課，跟這個技能已經記過的「靜默 no-op」是同一條：**失敗要說出來；宣稱成功卻沒成功，比明講失敗更貴**——使用者會拿著空剪貼簿去貼，然後懷疑整個工具。④ 修既有產出時，若使用者已經填過，**只能就地修補，不得改 DOC_ID／版本號／卡片 id／選項值**，否則他存在瀏覽器裡的草稿會整份消失。

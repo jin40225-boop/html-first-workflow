@@ -567,8 +567,14 @@ textarea::placeholder{color:var(--ink-2);opacity:.75}
     <div class="subrow jsonly">
       <button class="btn primary" id="btnCopy2">複製回覆給 AI（貼回對話）</button>
       <button class="btn" id="btnExport2">匯出 JSON 檔</button>
+      <button class="btn" id="btnManual">顯示回覆文字（自己複製）</button>
       <button class="btn" id="btnPrint">列印／存 PDF</button>
       <button class="btn" id="btnClear">清空重來</button>
+    </div>
+    <div id="manual" hidden>
+      <div class="hint warn"><b>自動複製在這個檢視器裡不一定有效。</b>下面這格是你的完整回覆，已經整段選起來了——
+      按 <code>Ctrl+C</code>，再回對話按 <code>Ctrl+V</code>。這條路不經過剪貼簿權限，任何檢視器都能用。</div>
+      <textarea id="manualText" readonly style="min-height:260px"></textarea>
     </div>
     <div class="hint" id="hintNormal">
       <b>兩種回法：</b>① <b>複製回覆給 AI</b> → 回對話 <code>Ctrl+V</code>（最快）。
@@ -602,7 +608,7 @@ const cards=[...document.querySelectorAll(".card")];
 const byId={}; cards.forEach(c=>byId[c.dataset.id]=c);
 let state={}, filter="all", cluFilter="", cursor=-1;
 
-document.querySelectorAll(".jsonly").forEach(el=>el.style.display="");
+document.querySelectorAll(".jsonly").forEach(el=>el.classList.remove("jsonly"));
 document.getElementById("jump").style.display="flex";
 document.getElementById("hintNoJS").style.display="none";
 
@@ -821,12 +827,27 @@ function copyMD(){
   if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(txt).then(done).catch(()=>fb(txt,done));
   else fb(txt,done);
 }
+/* execCommand 被擋時回傳 false 而不是丟例外——不檢查回傳值就會變成
+   「跳出已複製、剪貼簿其實是空的」。這是靜默成功，比明講失敗更糟。 */
 function fb(txt,done){
   const t=document.createElement("textarea");
   t.value=txt;t.style.position="fixed";t.style.opacity="0";
   document.body.appendChild(t);t.select();
-  try{document.execCommand("copy");done()}catch(e){toast("複製失敗，請改用「匯出 JSON」")}
+  let ok=false;
+  try{ok=document.execCommand("copy")===true}catch(e){ok=false}
   document.body.removeChild(t);
+  if(ok) done(); else showManual(txt);
+}
+/* 最後一條退路：把回覆整段攤在頁面上並全選，使用者自己按 Ctrl+C。
+   不依賴剪貼簿 API、不依賴下載，任何檢視器都成立。 */
+function showManual(txt){
+  const box=document.getElementById("manual"), ta=document.getElementById("manualText");
+  ta.value=txt||toMD();
+  box.hidden=false;
+  box.scrollIntoView({behavior:"smooth",block:"center"});
+  ta.focus(); ta.select();
+  try{ta.setSelectionRange(0,ta.value.length)}catch(e){}
+  toast("這個檢視器擋掉了自動複製——文字已攤在下面並全選，按 Ctrl+C");
 }
 function exportJSON(){
   const b=new Blob([JSON.stringify(payload(),null,2)],{type:"application/json"});
@@ -929,7 +950,7 @@ document.getElementById("filters").addEventListener("click",e=>{
   const b=e.target.closest(".f"); if(!b) return; filter=b.dataset.f; cursor=-1; applyFilter();
 });
 [["btnCopy",copyMD],["btnCopy2",copyMD],["btnExport",exportJSON],["btnExport2",exportJSON],
- ["btnImport",importJSON],["btnTheme",toggleTheme],["btnClear",clearAll],
+ ["btnImport",importJSON],["btnTheme",toggleTheme],["btnClear",clearAll],["btnManual",()=>showManual(null)],
  ["btnPrint",()=>window.print()],["btnUp",()=>step(-1)],["btnDown",()=>step(1)],["btnNext",nextTodo]
 ].forEach(([id,fn])=>{const el=document.getElementById(id); if(el) el.addEventListener("click",fn)});
 addEventListener("keydown",e=>{

@@ -250,6 +250,13 @@ def validate(path: Path, kind: str) -> Report:
     # ── 7. 依類型的專屬檢查
     if kind == "console":
         rep.check("互動元件預設隱藏（.jsonly）", ".jsonly" in html and re.search(r"\.jsonly\s*\{[^}]*display\s*:\s*none", html, re.I) is not None)
+        # 有 JS 時要真的顯示回來。清 inline style（el.style.display=""）是清不掉 class 規則的：
+        # .jsonly{display:none} 只要排在 .tools/.progress/.filters 之後就永遠贏，整條工具列會消失。
+        rep.check(
+            "有 JS 時 .jsonly 會真的顯示回來（必須移除 class，不能只清 inline style）",
+            re.search(r'\.jsonly["\']\s*\)\s*\.forEach\s*\(\s*\w+\s*=>\s*\w+\.classList\.remove\(\s*["\']jsonly["\']', html) is not None,
+            "找到的是 style.display=\"\" 這種寫法" if re.search(r'\.jsonly["\']\s*\)\s*\.forEach\s*\(\s*\w+\s*=>\s*\w+\.style\.display', html) else "找不到開啟 .jsonly 的程式碼",
+        )
         rep.check("有無 JS 時的替代說明", "hintNoJS" in html or "沒有執行互動功能" in html)
         # 骨架本身就該留佔位值，只有實際產出物才檢查
         if "-template" not in path.name:
@@ -260,6 +267,14 @@ def validate(path: Path, kind: str) -> Report:
         rep.check("每個選項都有「影響」", html.count("→ 影響") >= html.count('class="opt"') - 1 if 'class="opt"' in html else True)
         rep.check("每個選項都有「代價」", html.count("代價：") >= html.count('class="opt"') - 1 if 'class="opt"' in html else True)
         rep.check("有匯出與複製兩條回收路徑", "btnExport" in html and "btnCopy" in html)
+        # execCommand("copy") 被擋時回傳 false 而不丟例外。不檢查回傳值就會「說已複製、其實沒複製」，
+        # 使用者填完一整頁卻貼不出東西。必須有一條不依賴剪貼簿與下載的退路（把文字攤在頁面上讓人自己選）。
+        rep.check(
+            "複製失敗有不依賴剪貼簿的退路（不得靜默宣稱已複製）",
+            re.search(r'execCommand\(\s*["\']copy["\']\s*\)\s*;?\s*done', html) is None
+            and "showManual" in html and 'id="manual"' in html,
+            "execCommand 的回傳值沒被檢查就呼叫 done()" if re.search(r'execCommand\(\s*["\']copy["\']\s*\)\s*;?\s*done', html) else "找不到手動複製退路（showManual／#manual）",
+        )
         _check_counts(rep, html)
         _check_sections(rep, html)
         _check_deps(rep, html)
