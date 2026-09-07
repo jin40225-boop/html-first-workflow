@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>操作體驗與決策確認｜{{專案名稱}}</title>
+<!--
+  綜合台公版：操作體驗＋八節決策確認
+  複製後必改 DOC_ID、標題、操作流程、八節內容與驗收條件。
+  操作資料與決策回覆使用不同儲存鍵；試用、草稿、已保存不得混寫。
+-->
+<style>
+:root{
+  --bg:#fbf6ef;--surface:#fff;--soft:#fdf6e9;--soft2:#f4ead7;--ink:#2d251a;--body:#50412e;
+  --muted:#7a6953;--line:#ecdfca;--line2:#e1d2b8;--accent:#d97757;--accent2:#c5613f;
+  --ok:#357341;--okbg:#ecf7ef;--edit:#8c560f;--editbg:#fdf1de;--no:#a83a2c;--nobg:#fbeae6;
+  --hold:#3e7aa3;--holdbg:#f0f7fb;--shadow:0 1px 2px rgba(60,40,20,.05),0 10px 28px rgba(60,40,20,.08);
+  --radius:16px
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1b1714;--surface:#241f1a;--soft:#2c2620;--soft2:#3a322a;--ink:#f4eadf;--body:#ded1c3;
+  --muted:#b8a897;--line:#44392f;--line2:#594a3d;--accent:#ec9b6c;--accent2:#f4b58e;
+  --ok:#7cc79a;--okbg:#1e3527;--edit:#edbd65;--editbg:#3a2f18;--no:#f0897d;--nobg:#3d211d;
+  --hold:#9fc5e0;--holdbg:#212b3d;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.35)
+}}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--body);font-family:"Segoe UI","Microsoft JhengHei",sans-serif;font-size:16px;line-height:1.65}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid rgba(217,119,87,.35);outline-offset:2px}
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 94%,transparent);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.topin{max-width:1180px;margin:auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px}.mark{width:38px;height:38px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
+h1{font-size:19px;line-height:1.3;margin:0;color:var(--ink)}.sub{font-size:13px;color:var(--muted)}
+.tabs{margin-left:auto;display:flex;gap:6px;background:var(--soft);padding:4px;border:1px solid var(--line);border-radius:12px}
+.tab,.btn{border:1px solid transparent;border-radius:9px;padding:8px 13px;background:transparent;color:var(--body)}
+.tab[aria-selected="true"],.btn.primary{background:var(--accent);color:#fff}.btn{border-color:var(--line2);background:var(--surface)}
+.btn:hover{border-color:var(--accent)}.btn.primary:hover{background:var(--accent2)}.btn.small{padding:5px 10px;font-size:13px}
+.statusline{max-width:1180px;margin:auto;padding:0 22px 10px;font-size:13px;color:var(--muted)}
+.wrap{max-width:1180px;margin:auto;padding:24px 22px 110px}.hidden{display:none!important}.jsonly{display:none}
+.notice{border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--surface);padding:13px 16px;border-radius:12px;margin-bottom:18px}
+.workbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}.search{flex:1;min-width:230px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);padding:11px 13px;border-radius:10px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.item,.panel,.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.item{padding:17px}.item h3,.panel h2,.card h3{color:var(--ink);margin:0 0 7px}.item p{margin:0 0 13px}.pill{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--soft2);font-size:12px;color:var(--muted);margin-right:5px}
+.empty{grid-column:1/-1;padding:36px;text-align:center;color:var(--muted);border:1px dashed var(--line2);border-radius:var(--radius)}
+dialog{border:0;padding:0;border-radius:18px;width:min(620px,calc(100vw - 24px));background:var(--surface);color:var(--body);box-shadow:0 24px 70px rgba(30,20,12,.28)}
+dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{display:grid;gap:6px;margin:14px 0}.field label{font-weight:650;color:var(--ink)}
+.field input,.field textarea{width:100%;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--soft);color:var(--ink)}.field textarea{min-height:100px;resize:vertical}
+.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}.msg{min-height:24px;color:var(--edit);font-size:14px}
+.preview-settings{margin-top:20px;padding:16px}.trialbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.density-compact .item{padding:11px}.density-compact .grid{gap:8px}
+.sectionnav{display:flex;gap:6px;overflow:auto;padding-bottom:8px;margin-bottom:16px}.sectionnav a{white-space:nowrap;text-decoration:none;color:var(--muted);padding:5px 10px;border:1px solid var(--line);border-radius:999px}
+.review section{scroll-margin-top:130px;margin:28px 0}.shead{border-bottom:2px solid var(--accent);display:flex;gap:10px;align-items:baseline;margin-bottom:13px}.shead h2{font-size:19px;color:var(--ink);margin:0}.shead span{font-size:13px;color:var(--muted)}
+.card{padding:18px;margin:12px 0}.cardhead{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}.cid{font-weight:800;color:var(--accent)}.need{font-size:12px;background:var(--nobg);color:var(--no);border-radius:999px;padding:2px 8px}
+.why{border-left:3px solid var(--line2);padding-left:12px;color:var(--muted)}.opts{display:grid;gap:9px;margin:13px 0}.opt{display:flex;gap:10px;border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:12px}
+.opt:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--soft) 72%,var(--accent) 28%)}.opt input{margin-top:6px}.opt small{display:block;color:var(--muted)}
+.impact{display:block;margin-top:6px;color:var(--body)}.cost{display:block;color:var(--muted)}.rec{font-size:11px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:6px}
+.marks{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.mk{border:1px solid var(--line2);background:var(--soft);border-radius:999px;padding:5px 11px}.mk.on[data-m="ok"]{color:var(--ok);background:var(--okbg);border-color:var(--ok)}
+.mk.on[data-m="edit"]{color:var(--edit);background:var(--editbg);border-color:var(--edit)}.mk.on[data-m="no"]{color:var(--no);background:var(--nobg);border-color:var(--no)}
+.mk.on[data-m="hold"]{color:var(--hold);background:var(--holdbg);border-color:var(--hold)}.state{font-size:13px;color:var(--muted)}.state.dirty{color:var(--edit);font-weight:700}
+.comment{width:100%;min-height:68px;border:1px solid var(--line2);border-radius:10px;padding:9px 11px;background:var(--soft);color:var(--ink)}
+.export{width:100%;min-height:210px;border:1px solid var(--line2);border-radius:10px;background:var(--soft);color:var(--ink);padding:12px}.submit{padding:18px;margin-top:24px}
+.nojs{display:block}.js .nojs{display:none}.footnote{font-size:13px;color:var(--muted)}
+@media(max-width:760px){.topin{padding:12px 14px}.tabs{width:100%;margin-left:0}.tab{flex:1}.wrap{padding:18px 14px 90px}.grid{grid-template-columns:1fr}.workbar .btn.primary{width:100%}.actions .btn{flex:1}.card{padding:15px}}
+@media print{.top,.workbar,.preview-settings,.sectionnav,.marks,.trial,.saveone,.submit .actions{display:none!important}.wrap{max-width:none;padding:0}.panel,.card,.item{box-shadow:none;break-inside:avoid}.hidden{display:block!important}body{background:#fff;color:#222}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="topin">
+    <div class="brand"><div class="mark">合</div><div><h1>{{專案名稱}}｜操作與決策台</h1><div class="sub">{{版本}}・{{日期}}</div></div></div>
+    <div class="tabs jsonly" role="tablist" aria-label="工作區切換">
+      <button class="tab" data-view="experience" role="tab" aria-selected="true">操作體驗</button>
+      <button class="tab" data-view="review" role="tab" aria-selected="false">決策確認</button>
+    </div>
+  </div>
+  <div class="statusline" id="globalStatus">離線公版骨架；操作資料與決策回覆分開保存在這個瀏覽器。</div>
+</header>
+
+<main class="wrap">
+  <div class="nojs notice" id="hintNoJS">目前沒有執行互動功能；你仍可閱讀操作說明與八節決策內容。若要試用、保存或匯出，請用允許 JavaScript 的瀏覽器開啟。</div>
+
+  <div id="experience" data-zone="experience">
+    <div class="notice"><strong>操作體驗</strong>：以下均為虛構示範資料，只存於本瀏覽器，不會呼叫正式 API，也不代表已發布到正式環境。</div>
+    <div class="workbar jsonly">
+      <input class="search" id="workSearch" aria-label="搜尋工作項目" placeholder="搜尋名稱或說明">
+      <button class="btn primary" id="newItem">＋ 新增項目</button>
+    </div>
+    <section aria-labelledby="workTitle">
+      <h2 id="workTitle">主要工作</h2>
+      <p class="footnote">把真實專案最常做的工作放在第一畫面；不要先展示系統架構或功能總表。</p>
+      <div class="grid" id="workList">
+        <article class="item" data-title="示範申請項目"><h3>示範申請項目</h3><p>用一張卡呈現完成工作所需的摘要與狀態。</p><span class="pill">示範分類</span><span class="pill">可操作</span></article>
+        <article class="item" data-title="範例文件整理"><h3>範例文件整理</h3><p>點新增後在同一視窗填資料並完成保存。</p><span class="pill">虛構資料</span><span class="pill">本機預覽</span></article>
+      </div>
+    </section>
+    <section class="panel preview-settings">
+      <h2>操作預覽設定</h2>
+      <div class="trialbox">
+        <span>目前測試設定：<strong id="trialLabel">舒適間距</strong></span>
+        <button class="btn small trial jsonly" data-trial="comfortable">試用舒適間距</button>
+        <button class="btn small trial jsonly" data-trial="compact">試用緊湊間距</button>
+        <button class="btn small jsonly" id="resetPractice">重設操作資料</button>
+      </div>
+      <p class="footnote">試用只改操作體驗，不會勾選決策、不會建立草稿，也不會變成已保存意見。</p>
+    </section>
+  </div>
+
+  <div id="review" class="review hidden" data-zone="review">
+    <div class="notice"><strong>決策確認</strong>：先看完計畫與實際操作，再決定岔路。推薦只是建議；未回答、未表態與未保存草稿都不算核准。</div>
+    <nav class="sectionnav" aria-label="八節導覽">
+      <a href="#s1">1 理解</a><a href="#s2">2 現況</a><a href="#s3">3 計畫</a><a href="#s4">4 規格</a>
+      <a href="#s5">5 矛盾</a><a href="#s6">6 提問</a><a href="#s7">7 決策</a><a href="#s8">8 成本</a>
+    </nav>
+
+    <section id="s1" data-sec="understand"><div class="shead"><h2>1 理解</h2><span>我聽懂的工作與成功條件</span></div>
+      <article class="card" data-id="U1"><div class="cardhead"><span class="cid">U1</span><h3>{{用一句話重述真正目標}}</h3></div>
+        <p>{{不要照抄需求；說明使用者做完哪些工作才算成功。}}</p><p class="why"><strong>為什麼這樣判斷：</strong>{{連結到使用者原話、現況或可查證依據。}}</p></article>
+    </section>
+    <section id="s2" data-sec="now"><div class="shead"><h2>2 現況</h2><span>已完成、欠缺與證據</span></div>
+      <article class="card" data-id="N1"><div class="cardhead"><span class="cid">N1</span><h3>{{目前實際狀態}}</h3></div>
+        <p>{{列出已查證內容、既有資料與尚未驗證處；若已先施工要明說。}}</p><p class="why"><strong>證據：</strong>{{檔案、畫面、指令或來源。}}</p></article>
+    </section>
+    <section id="s3" data-sec="plan"><div class="shead"><h2>3 計畫</h2><span>步驟與逐步驗收</span></div>
+      <article class="card" data-id="P1"><div class="cardhead"><span class="cid">P1</span><h3>{{施工路徑}}</h3></div>
+        <ol><li>{{先完成可操作骨架；驗收主要流程。}}</li><li>{{依已保存意見施工；驗收資料保存。}}</li><li>{{正式發布前驗收權限與回復。}}</li></ol></article>
+    </section>
+    <section id="s4" data-sec="spec"><div class="shead"><h2>4 規格</h2><span>介面、資料與失敗方式</span></div>
+      <article class="card" data-id="S1"><div class="cardhead"><span class="cid">S1</span><h3>{{關鍵規格}}</h3></div>
+        <p>{{說明操作入口、儲存邊界、權限、錯誤回饋與回復方法。}}</p><p class="why"><strong>驗收：</strong>API 成功後才刷新為成功；409 保留草稿並提示重新載入；離線預覽只說已存入本瀏覽器。</p></article>
+    </section>
+    <section id="s5" data-sec="conflict"><div class="shead"><h2>5 矛盾</h2><span>衝突與調和方式</span></div>
+      <article class="card" data-id="C1"><div class="cardhead"><span class="cid">C1</span><h3>{{真正需要調和的衝突}}</h3></div>
+        <p>{{同時列出兩邊需求，再給能落地的調和方案；不能只把風險丟給使用者。}}</p></article>
+    </section>
+    <section id="s6" data-sec="ask"><div class="shead"><h2>6 提問</h2><span>只有使用者知道的事</span></div>
+      <article class="card" data-id="Q1" data-need="1"><div class="cardhead"><span class="cid">Q1</span><span class="need">需要你回答</span><h3>{{根問題：答案會改變後續做法}}</h3></div>
+        <p class="why"><strong>為什麼要問：</strong>{{這是工作現場或偏好，無法從檔案查到。}}</p>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="opt-Q1" value="A"><span><strong>{{選項 A}} <span class="rec">我推薦</span></strong><small>{{白話說明}}</small><span class="impact">→ 影響：{{選了會發生什麼}}</span><span class="cost">代價：{{會失去什麼或多花什麼}}</span><button type="button" class="btn small trial" data-trial="option-A">試用此做法</button></span></label>
+          <label class="opt"><input type="radio" name="opt-Q1" value="B"><span><strong>{{選項 B}}</strong><small>{{白話說明}}</small><span class="impact">→ 影響：{{選了會發生什麼}}</span><span class="cost">代價：{{會失去什麼或多花什麼}}</span><button type="button" class="btn small trial" data-trial="option-B">試用此做法</button></span></label>
+        </div>
+        <div class="marks"><span>本題判斷：</span><button class="mk" data-m="ok">同意</button><button class="mk" data-m="edit">要改</button><button class="mk" data-m="no">不要</button><button class="mk" data-m="hold">待議</button></div>
+        <textarea class="comment" aria-label="Q1 補充意見" placeholder="選填補充；輸入後仍是未保存草稿"></textarea>
+        <div class="actions"><span class="state">尚未回答</span><button class="btn primary saveone" data-save="Q1">保存本題</button></div>
+      </article>
+    </section>
+    <section id="s7" data-sec="decide"><div class="shead"><h2>7 決策</h2><span>會改變實作的岔路</span></div>
+      <article class="card" data-id="D1" data-need="1"><div class="cardhead"><span class="cid">D1</span><span class="need">需要你回答</span><h3>{{實作方向}}</h3></div>
+        <p class="why"><strong>為什麼這樣判斷：</strong>{{說明推薦的根據，不把技術選擇丟回使用者。}}</p>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="opt-D1" value="A"><span><strong>{{方向 A}} <span class="rec">我推薦</span></strong><small>{{完整描述}}</small><span class="impact">→ 影響：{{功能、流程或資料的變化}}</span><span class="cost">代價：{{限制、維護或成本}}</span><button type="button" class="btn small trial" data-trial="decision-A">試用此做法</button></span></label>
+          <label class="opt"><input type="radio" name="opt-D1" value="B"><span><strong>{{方向 B}}</strong><small>{{完整描述}}</small><span class="impact">→ 影響：{{功能、流程或資料的變化}}</span><span class="cost">代價：{{限制、維護或成本}}</span><button type="button" class="btn small trial" data-trial="decision-B">試用此做法</button></span></label>
+        </div>
+        <div class="marks"><span>本題判斷：</span><button class="mk" data-m="ok">同意</button><button class="mk" data-m="edit">要改</button><button class="mk" data-m="no">不要</button><button class="mk" data-m="hold">待議</button></div>
+        <textarea class="comment" aria-label="D1 補充意見" placeholder="選填補充；輸入後仍是未保存草稿"></textarea>
+        <div class="actions"><span class="state">尚未回答</span><button class="btn primary saveone" data-save="D1">保存本題</button></div>
+      </article>
+    </section>
+    <section id="s8" data-sec="cost"><div class="shead"><h2>8 成本</h2><span>時間、費用、容量與維護</span></div>
+      <article class="card" data-id="K1"><div class="cardhead"><span class="cid">K1</span><h3>{{成本與預警}}</h3></div>
+        <p>{{列出可查證的建置、訂閱、主機、容量與人力成本；數字不足時明說待確認，不編造。}}</p><p class="why"><strong>對策：</strong>{{提供相符 CP 值的做法及觸發升級的條件。}}</p></article>
+    </section>
+
+    <section class="panel submit">
+      <h2>匯出與續評</h2>
+      <p>匯出會分開列出已保存、未表示意見及未保存草稿；試用不會列為核准。</p>
+      <div class="actions jsonly"><button class="btn primary" id="btnCopy">複製回覆給 AI</button><button class="btn" id="btnExport">產生 Markdown</button><button class="btn" id="btnJson">產生 JSON</button><button class="btn" id="btnImport">匯入 JSON</button><button class="btn" id="btnManual">顯示回覆文字（自己複製）</button></div>
+      <textarea class="export jsonly" id="manual" aria-label="回覆匯出與匯入文字" placeholder="按產生 Markdown／JSON，或貼上先前 JSON 後按匯入"></textarea>
+      <p class="footnote" id="copyStatus">草稿只存在這台電腦的這個瀏覽器；換裝置或清除網站資料後不會跟著移動。</p>
+    </section>
+  </div>
+</main>
+
+<dialog id="itemDialog" aria-labelledby="dialogTitle">
+  <form method="dialog" class="dialogin" id="itemForm">
+    <h2 id="dialogTitle">新增項目</h2>
+    <p>示範一個工作在同一視窗完成；正式專案請換成真實欄位與流程。</p>
+    <div class="field"><label for="itemName">名稱（必填）</label><input id="itemName" autocomplete="off"></div>
+    <div class="field"><label for="itemNote">說明</label><textarea id="itemNote"></textarea></div>
+    <p class="msg" id="itemMsg"></p>
+    <div class="actions"><button type="button" class="btn" id="cancelItem">取消</button><button type="button" class="btn primary" id="saveItem">儲存到本預覽</button></div>
+  </form>
+</dialog>
+
+<script>
+(()=>{
+"use strict";
+document.documentElement.classList.add("js");
+document.querySelectorAll(".jsonly").forEach(el=>el.classList.remove("jsonly"));
+const DOC_ID="PROJECT-ID-CHANGE-ME";
+const PRACTICE_KEY=DOC_ID+":practice:v1",REPLY_KEY=DOC_ID+":reply:v1";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const cards=()=>$$(".card[data-need='1']");
+const clean=()=>({trial:"comfortable",items:[]});
+const emptyReply=()=>({version:1,trials:[],cards:{}});
+let practice=load(PRACTICE_KEY,clean()),reply=load(REPLY_KEY,emptyReply());
+function load(key,fallback){try{return {...fallback,...JSON.parse(localStorage.getItem(key)||"{}")}}catch{return fallback}}
+function persist(key,value){localStorage.setItem(key,JSON.stringify(value))}
+function say(t){$("#globalStatus").textContent=t}
+function show(view){
+  $("#experience").classList.toggle("hidden",view!=="experience");$("#review").classList.toggle("hidden",view!=="review");
+  $$(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===view)));
+}
+function renderItems(){
+  const q=$("#workSearch").value.trim().toLowerCase();
+  const base=[{name:"示範申請項目",note:"用一張卡呈現完成工作所需的摘要與狀態。"},{name:"範例文件整理",note:"點新增後在同一視窗填資料並完成保存。"}];
+  const rows=[...base,...practice.items].filter(x=>!q||(x.name+" "+x.note).toLowerCase().includes(q));
+  $("#workList").innerHTML=rows.length?rows.map((x,i)=>`<article class="item"><h3>${esc(x.name)}</h3><p>${esc(x.note||"尚未填寫說明")}</p><span class="pill">${i<2?"虛構示範":"本預覽新增"}</span></article>`).join(""):'<div class="empty">找不到符合的項目；可清除搜尋或新增一筆。</div>';
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function ensureCard(id){return reply.cards[id]||(reply.cards[id]={draft:{option:"",mark:"",comment:""},saved:null})}
+function currentDraft(card){
+  const id=card.dataset.id,d=ensureCard(id).draft;
+  return {option:$("input[type=radio]:checked",card)?.value||d.option||"",mark:$(".mk.on",card)?.dataset.m||d.mark||"",comment:$(".comment",card)?.value??d.comment??""};
+}
+function syncCard(card){
+  const id=card.dataset.id,state=ensureCard(id),d=state.draft;
+  $$("input[type=radio]",card).forEach(r=>r.checked=r.value===d.option);
+  $$(".mk",card).forEach(b=>b.classList.toggle("on",b.dataset.m===d.mark));
+  $(".comment",card).value=d.comment||"";
+  renderState(card);
+}
+function same(a,b){return JSON.stringify(a||{})===JSON.stringify(b||{})}
+function renderState(card){
+  const state=ensureCard(card.dataset.id),draft=currentDraft(card),label=$(".state",card);
+  const saved={option:state.saved?.option||"",mark:state.saved?.mark||"",comment:state.saved?.comment||""};
+  const dirty=!same(draft,saved);
+  label.classList.toggle("dirty",dirty);
+  label.textContent=dirty?"有未保存草稿":state.saved?(state.saved.mark?`已保存：${markName(state.saved.mark)}`:"已保存、未表態"):"尚未回答";
+}
+function markName(v){return({ok:"同意",edit:"要改",no:"不要",hold:"待議"})[v]||"未表態"}
+function rememberDraft(card){
+  ensureCard(card.dataset.id).draft=currentDraft(card);
+  try{persist(REPLY_KEY,reply);renderState(card)}catch(e){say("草稿保存失敗，內容仍留在畫面："+(e.message||e))}
+}
+function saveCard(card){
+  const id=card.dataset.id,draft=currentDraft(card),state=ensureCard(id);state.draft=draft;
+  try{
+    const next=JSON.parse(JSON.stringify(reply));
+    next.cards[id].saved={...draft,savedAt:new Date().toISOString()};
+    persist(REPLY_KEY,next);reply=next;syncCard(card);say("本題已存入這個瀏覽器。");
+  }catch(e){say("保存失敗，草稿仍留在畫面："+(e.message||e))}
+}
+function exportObject(){
+  cards().forEach(rememberDraft);
+  const saved=[],drafts=[],unanswered=[];
+  cards().forEach(card=>{const id=card.dataset.id,s=ensureCard(id);if(s.saved)saved.push({id,...s.saved});else unanswered.push(id);if(!same(s.draft,{option:s.saved?.option||"",mark:s.saved?.mark||"",comment:s.saved?.comment||""}))drafts.push({id,...s.draft})});
+  return {schema:"integrated-review-workbench-v1",docId:DOC_ID,saved,unanswered,drafts,trials:[...reply.trials]};
+}
+function markdown(){
+  const o=exportObject(),groups={no:[],edit:[],hold:[],ok:[],blank:[]};
+  o.saved.forEach(x=>(groups[x.mark]||groups.blank).push(x));
+  const lines=["# {{專案名稱}}決策回覆","",...[
+    ["不要","no"],["要改","edit"],["待議","hold"],["同意","ok"],["已保存、未表態","blank"]
+  ].flatMap(([title,key])=>[`## ${title}`,"",...(groups[key].length?groups[key].map(x=>`- ${x.id}：${x.option||"未選擇"}；補充：${x.comment||"無"}`):["- 無"]),""]),
+  "## 未表示意見","",...(o.unanswered.length?o.unanswered.map(x=>`- ${x}，不能視為核准`):["- 無"]),"",
+  "## 未保存草稿","",...(o.drafts.length?o.drafts.map(x=>`- ${x.id}：${x.option||"未選擇"}／${markName(x.mark)}；補充：${x.comment||"無"}（尚未保存）`):["- 無"]),"",
+  "## 試用紀錄","",...(o.trials.length?o.trials.map(x=>`- ${x}`):["- 無"]),"",
+  "## 給 AI 的驗收條件","","- 試用、草稿與已保存意見必須分開。","- 未回答、未表態與未保存草稿不得當作核准。","- API 成功後才能刷新為成功狀態；409 時保留草稿並提示重新載入。","- 不捏造來源未提供的事實、個資、金額或使用量。"];
+  return lines.join("\n");
+}
+function showManual(text){$("#manual").value=text;$("#manual").classList.remove("hidden")}
+function setExport(text){showManual(text)}
+async function copy(){
+  const text=markdown();setExport(text);let ok=false;
+  try{await navigator.clipboard.writeText(text);ok=true}catch{}
+  if(!ok){$("#manual").focus();$("#manual").select();try{ok=document.execCommand("copy")===true}catch{}}
+  $("#copyStatus").textContent=ok?"已複製回覆。":"自動複製被瀏覽器阻擋；文字已全選，請按 Ctrl+C。";
+}
+function trial(value){
+  reply.trials=[...reply.trials.filter(x=>x!==value),value];
+  if(reply.trials.length>20)reply.trials=reply.trials.slice(-20);
+  const mode=({compact:"compact",comfortable:"comfortable","option-A":"comfortable","option-B":"compact","decision-A":"comfortable","decision-B":"compact"})[value];
+  if(mode){practice.trial=mode;document.body.classList.toggle("density-compact",mode==="compact");$("#trialLabel").textContent=mode==="compact"?"緊湊間距":"舒適間距";try{persist(PRACTICE_KEY,practice)}catch(e){say("試用設定無法保存："+(e.message||e))}}
+  try{persist(REPLY_KEY,reply)}catch(e){say("試用紀錄無法保存："+(e.message||e))}
+  say("已切換試用；沒有改變草稿或已保存意見。");
+}
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.view){show(b.dataset.view);return}
+  if(b.id==="newItem"){$("#itemForm").reset();$("#itemMsg").textContent="";$("#itemDialog").showModal();$("#itemName").focus()}
+  if(b.id==="cancelItem")$("#itemDialog").close();
+  if(b.id==="saveItem"){
+    const name=$("#itemName").value.trim();if(!name){$("#itemMsg").textContent="請填名稱；目前內容尚未保存。";$("#itemName").focus();return}
+    const item={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),name,note:$("#itemNote").value.trim()};
+    const next={...practice,items:[...practice.items,item]};
+    try{persist(PRACTICE_KEY,next);practice=next;renderItems();$("#itemDialog").close();say("已存入本預覽；沒有呼叫正式 API。")}catch(err){$("#itemMsg").textContent="儲存失敗，表單已保留："+(err.message||err)}
+  }
+  if(b.dataset.trial){e.preventDefault();e.stopPropagation();trial(b.dataset.trial)}
+  if(b.classList.contains("mk")){const card=b.closest(".card");$$(".mk",card).forEach(x=>x.classList.toggle("on",x===b));rememberDraft(card)}
+  if(b.dataset.save)saveCard(b.closest(".card"));
+  if(b.id==="resetPractice"){if(confirm("重設操作練習資料？決策草稿與已保存意見會保留。")){try{localStorage.removeItem(PRACTICE_KEY);practice=clean();document.body.classList.remove("density-compact");$("#trialLabel").textContent="舒適間距";renderItems();say("操作資料已重設；決策回覆未清除。")}catch(e){say("重設失敗："+(e.message||e))}}}
+  if(b.id==="btnExport")setExport(markdown());
+  if(b.id==="btnJson")setExport(JSON.stringify(exportObject(),null,2));
+  if(b.id==="btnCopy")copy();
+  if(b.id==="btnManual"){setExport(markdown());$("#manual").focus();$("#manual").select();$("#copyStatus").textContent="回覆文字已全選，請按 Ctrl+C。"}
+  if(b.id==="btnImport"){try{const o=JSON.parse($("#manual").value);if(o.schema!=="integrated-review-workbench-v1"||o.docId!==DOC_ID)throw new Error("這不是本專案的相容回覆");const next=emptyReply();next.trials=Array.isArray(o.trials)?o.trials:[];(o.saved||[]).forEach(x=>next.cards[x.id]={saved:{option:x.option||"",mark:x.mark||"",comment:x.comment||""},draft:{option:x.option||"",mark:x.mark||"",comment:x.comment||""}});(o.drafts||[]).forEach(x=>{const s=next.cards[x.id]||(next.cards[x.id]={saved:null,draft:{}});s.draft={option:x.option||"",mark:x.mark||"",comment:x.comment||""}});persist(REPLY_KEY,next);reply=next;cards().forEach(syncCard);say("已匯入續評；未保存草稿仍是草稿。")}catch(err){say("匯入失敗，原回覆未改變："+(err.message||err))}}
+});
+document.addEventListener("input",e=>{if(e.target.id==="workSearch")renderItems();if(e.target.classList.contains("comment"))rememberDraft(e.target.closest(".card"))});
+document.addEventListener("change",e=>{if(e.target.matches(".card input[type=radio]"))rememberDraft(e.target.closest(".card"))});
+practice.items=Array.isArray(practice.items)?practice.items:[];reply.cards=reply.cards||{};reply.trials=Array.isArray(reply.trials)?reply.trials:[];
+document.body.classList.toggle("density-compact",practice.trial==="compact");$("#trialLabel").textContent=practice.trial==="compact"?"緊湊間距":"舒適間距";
+cards().forEach(syncCard);renderItems();show("experience");
+})();
+</script>
+</body>
+</html>

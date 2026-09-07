@@ -35,6 +35,7 @@
 | 全站公告跑馬燈（含授權、排程、可及性） | `components/F-UI-011_內頁全域公告跑馬燈/` |
 | 多階段表單、條件顯示、確認頁 | `components/F-FORM-008_schema驅動多階段表單引擎/` |
 | 確認台匯出要附「給 AI 的驗收條件」 | `tools/F-AI-007_交接文組裝器/` |
+| 操作體驗與八節決策要放在同一份 HTML | `../references/integrated-review-workbench.md` 與 `../assets/integrated-review-workbench-template.html` |
 | 要改造舊 Excel，得先看懂它的結構（不讀資料只讀結構） | `tools/F-AI-001_舊Excel結構勘查器/` |
 | 要改造 VBA 系統，得先盤點有哪些模組（含重複版本偵測） | `tools/F-AI-002_VBA專案模組盤點/` |
 | 本機檔案含個資，要先洗過才能給 AI 看 | `tools/F-AI-003_全資料夾個資去識別化/` |
@@ -42,7 +43,12 @@
 
 ---
 
-## 兩軌產出各自吃哪些
+## 三種產出各自吃哪些
+
+**綜合台｜操作體驗＋決策確認**（新建軟體與流程改版的預設）
+- 操作區依真實工作使用對應元件；決策區固定使用 `F-UI-001`。
+- 操作資料、試用設定、未保存草稿與已保存意見分開保存。
+- 詳細規格見 `references/integrated-review-workbench.md`。
 
 **軌道 B｜協作確認台**（固定視覺，不隨案調）
 - 視覺一律用 `F-UI-001`。**token 值已經預先烤進 `assets/review-console-template.html`，直接用骨架即可**，不必再複製 CSS。
@@ -62,7 +68,7 @@
    但本技能第五節要求深淺色跟隨系統——**`assets/review-console-template.html` 裡的那份已經補了暗色**，
    要暗色時以骨架裡的為準，不要退回原始 `tokens.css`。
 2. **`app.css` 的 class 命名跟原專案 HTML 結構耦合**，不是通用 utility framework。**只抄需要的元件，不要整份搬。**
-3. **多數 `components/` 條目是 React／HTMX／Streamlit**，本技能的兩軌產出是**單檔、零外部相依的純 HTML**。
+3. **多數 `components/` 條目是 React／HTMX／Streamlit**，本技能的三種產出是**單檔、零外部相依的純 HTML**。
    複製時要抄的是**版面結構、狀態設計、互動邏輯**，不是框架程式碼本身。
 
 ---

@@ -109,10 +109,12 @@ def main() -> int:
     required_paths = [
         # 這個技能的五個新支柱
         "references/review-console.md",
+        "references/integrated-review-workbench.md",
         "references/client-demo.md",
         "references/cost-and-tradeoffs.md",
         "references/delivery-resilience.md",
         "assets/review-console-template.html",
+        "assets/integrated-review-workbench-template.html",
         "assets/client-demo-template.html",
         # 自舊技能沿用
         "references/project-intake.md",

@@ -3,7 +3,7 @@
 
 用法：
     python validate_html.py <檔案.html> [更多檔案...]
-    python validate_html.py <檔案.html> --type console|demo|auto
+    python validate_html.py <檔案.html> --type workbench|console|demo|auto
 
 為什麼要有這支：這個技能的三次失敗（內容被 JavaScript 擋掉、選項沒寫影響與代價、
 規則過期還在模板裡）全都是「AI 自認完成」的產物。自評表擋不住長會話尾段的偷懶，
@@ -66,6 +66,8 @@ def visible_text_without_js(html: str) -> str:
 
 
 def detect_kind(html: str) -> str:
+    if 'data-zone="experience"' in html and 'data-zone="review"' in html and 'data-sec="' in html:
+        return "workbench"
     if 'data-sec="' in html and 'data-m="ok"' in html:
         return "console"
     if "離線示範" in html or "均為虛構" in html:
@@ -214,7 +216,7 @@ def validate(path: Path, kind: str) -> Report:
 
     # ── 2. 靜態優先：把 JS 全部拿掉之後還讀不讀得到內容
     text = visible_text_without_js(html)
-    floor = 1200 if kind == "console" else 400
+    floor = 1200 if kind in {"console", "workbench"} else 400
     rep.check(
         "靜態優先（關掉 JS 仍讀得到內容）",
         len(text) >= floor,
@@ -248,7 +250,7 @@ def validate(path: Path, kind: str) -> Report:
     )
 
     # ── 7. 依類型的專屬檢查
-    if kind == "console":
+    if kind in {"console", "workbench"}:
         rep.check("互動元件預設隱藏（.jsonly）", ".jsonly" in html and re.search(r"\.jsonly\s*\{[^}]*display\s*:\s*none", html, re.I) is not None)
         # 有 JS 時要真的顯示回來。清 inline style（el.style.display=""）是清不掉 class 規則的：
         # .jsonly{display:none} 只要排在 .tools/.progress/.filters 之後就永遠贏，整條工具列會消失。
@@ -279,6 +281,37 @@ def validate(path: Path, kind: str) -> Report:
         _check_sections(rep, html)
         _check_deps(rep, html)
 
+    if kind == "workbench":
+        practice_key = re.search(r"PRACTICE_KEY\s*=\s*([^,;]+)", html)
+        reply_key = re.search(r"REPLY_KEY\s*=\s*([^,;]+)", html)
+        rep.check(
+            "操作體驗與決策確認位於同一份 HTML",
+            'data-zone="experience"' in html and 'data-zone="review"' in html,
+        )
+        rep.check(
+            "操作資料與決策回覆使用不同儲存鍵",
+            practice_key is not None and reply_key is not None
+            and practice_key.group(1).strip() != reply_key.group(1).strip(),
+        )
+        rep.check(
+            "試用、草稿與已保存意見分開呈現",
+            all(term in html for term in ("試用", "未保存草稿", "已保存")),
+        )
+        rep.check(
+            "每題另有保存動作",
+            "data-save=" in html and ("保存本題" in html or "儲存本題" in html),
+        )
+        prechecked = re.findall(r'<input[^>]+type=["\']radio["\'][^>]+checked(?:\s|=|>)', html, re.I)
+        rep.check("推薦選項沒有預先勾選", not prechecked, f"找到 {len(prechecked)} 個預選 radio")
+        rep.check(
+            "試用不等於核准的說明存在",
+            "試用" in html and ("不代表核准" in html or "不會" in html and "已保存意見" in html),
+        )
+        rep.check(
+            "重設操作資料不會清除決策回覆",
+            "removeItem(PRACTICE_KEY)" in html and "removeItem(REPLY_KEY)" not in html,
+        )
+
     if kind == "demo":
         rep.check("有虛構資料聲明", "均為虛構" in html)
         rep.check("有離線示範標示", "離線示範" in html)
@@ -290,7 +323,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="驗證單檔 HTML 是否符合 html-first-workflow 規格")
     ap.add_argument("files", nargs="+", type=Path)
     ap.add_argument("--type", dest="kind", default="auto",
-                    choices=["auto", "console", "demo", "generic"],
+                    choices=["auto", "workbench", "console", "demo", "generic"],
                     help="不指定就自動判斷")
     args = ap.parse_args()
 

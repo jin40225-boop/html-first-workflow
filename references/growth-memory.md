@@ -148,3 +148,7 @@ Keep this file practical. Do not store private secrets, temporary bugs, or one-o
 - Context: 使用者把 16 則確認台整份填完，按「複製回覆給 AI」，畫面跳出「已複製」，貼到對話卻是空的——他問「妳這個功能無法使用？」。骨架的退路是 `try{document.execCommand("copy");done()}catch(e){...}`：**被擋時 execCommand 回傳 `false` 而不是丟例外**，所以 catch 永遠不會進去，`done()` 照樣跑，toast 照樣說已複製。內嵌檢視器（非獨立 Chrome）常同時擋掉 `navigator.clipboard` 與 execCommand，兩條路一起斷，而使用者只看得到一句「已複製」。
 - Preference: 回收使用者的作答不可以只有剪貼簿與下載兩條路——兩條都可能被檢視器擋掉，而且擋掉時不一定會報錯。
 - Apply next time: ① 任何 `execCommand` 一律檢查回傳值，`===true` 才算成功。② 必備第三條退路：把回覆整段攤在頁面上的 textarea 並自動全選，讓使用者自己按 Ctrl+C——這條不經過任何權限。③ 常駐一顆「顯示回覆文字（自己複製）」按鈕，不要等失敗才出現。已修 `assets/review-console-template.html`，並在 `validate_html.py` 加了機器檢查。更普遍的一課，跟這個技能已經記過的「靜默 no-op」是同一條：**失敗要說出來；宣稱成功卻沒成功，比明講失敗更貴**——使用者會拿著空剪貼簿去貼，然後懷疑整個工具。④ 修既有產出時，若使用者已經填過，**只能就地修補，不得改 DOC_ID／版本號／卡片 id／選項值**，否則他存在瀏覽器裡的草稿會整份消失。
+### 2026-09-07 - 操作體驗與決策確認放在同一份 HTML
+- Context: 使用者在本機軟體體驗台先操作功能、再於同頁決策，明確表示比過往分開的展示頁與確認台更好，並要求升格為公版。
+- Preference: 新建軟體與主要流程改版預設使用綜合台；第一區能走完主要工作，第二區保留八節決策。試用、未保存草稿、已保存意見分開，推薦不得預選。
+- Apply next time: 使用 `assets/integrated-review-workbench-template.html`；重設操作資料不得清除決策，API 成功後才顯示保存成功，409 保留草稿。只有沒有合理操作面時才使用獨立確認台。
