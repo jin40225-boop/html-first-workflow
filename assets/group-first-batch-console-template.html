@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>群組優先的批次管理台 · 預覽骨架</title>
+<!--
+  ═══════════════════════════════════════════════════════════════════
+  骨架：群組優先的批次管理台（先選群組 → 列出該組每一項 → 就地設定）
+  ═══════════════════════════════════════════════════════════════════
+
+  什麼時候用這一份：
+    使用者要「對一批項目做同類設定」——權限、標籤、上下架、指派、通知對象、
+    功能開關。而項目多到用下拉選單選不完（幾十到幾百個）。
+
+  它在解的問題（見 references/growth-memory.md）：
+    第一版常見的做法是一張表單「選一個項目 → 填 → 送出 → 整頁重載 → 再找下一個」。
+    每個欄位都正確、每次儲存都成功、測試全綠，而使用者說「要一個一個查找、
+    一個一個套用，非常反直覺」。錯的不是欄位，是**介面的工作單位**：
+    他是以「群組」為單位工作的，介面卻以「單項」為單位，中間那段換算
+    （這組有哪幾項？我做到哪了？還剩哪些？）全落在人腦裡，而且每次重載就清空。
+
+  ─── 動手前先改這四個地方（都標了「改這裡」）───
+    ① CONFIG.modules   你的模組／設定項代號與中文名
+    ② CONFIG.roster    你的人員或對象清單來源
+    ③ DATA             你的「群組 → 項目」資料
+    ④ save()           接上你真正的 API（骨架版只改瀏覽器裡的暫存）
+
+  ─── 這份是預覽骨架，不是成品 ───
+    · 按下去只改瀏覽器暫存，重新整理就沒了。給使用者確認方向用。
+    · 方向確認之後才接真正的後端；接後端時務必看下面「接後端的四條」。
+    · 頁面裡的人名、群組名、項目名全部是虛構的示範資料，換成你的之前不要交付。
+
+  ─── 接後端的四條（每一條都是真的踩過的坑）───
+    1. 存檔成功的回應要帶回**伺服器讀到的狀態**，前端整段換掉；
+       不要把自己送出去的那份當結果（伺服器會過濾、正規化、補預設值）。
+    2. 每一次重畫都要把輸入控制項一起重建。只更新資料而沒重建勾選框，
+       會出現「上面寫著指定 2 人、下面勾選框整排空白」，
+       使用者再按一次送出就把 2 人變成全體。重畫入口只留一個。
+    3. 「關閉」不要順手刪掉已填的設定。列上那顆開關送出的是空設定
+       （它不知道使用者填過什麼），照單全收＝關一下再開就無聲歸零。
+    4. class 取名前先搜過你的全站樣式表。撞到 `display` 的那種最兇——
+       元素看起來完全正常，只是排版換了一套、表頭飄到別的地方。
+       這份骨架的 class 一律加 `gb-` 前綴，同樣的理由。
+-->
+<style>
+/* ── 設計 token。要換配色就只改這一段。深淺色跟隨系統，也吃 data-theme 覆寫。 ── */
+:root{
+  --bg:#f7f4ef; --panel:#fff; --panel-2:#f2ede5; --ink:#1f1b17; --ink-2:#6a5f53;
+  --line:#e4dbcf; --line-2:#cfc2b0; --accent:#2f5d50; --accent-soft:#e2ede9;
+  --warm:#a4552c; --warm-soft:#f7e9e0;
+  --shadow:0 1px 2px rgba(50,35,20,.05),0 6px 20px rgba(50,35,20,.06);
+  --radius:12px; --maxw:1180px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#171512; --panel:#201d19; --panel-2:#272320; --ink:#eee7dd; --ink-2:#ab9e8e;
+  --line:#332d27; --line-2:#443c33; --accent:#7fc2ac; --accent-soft:#1d2f2a;
+  --warm:#e0946b; --warm-soft:#33241b;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.4);
+}}
+:root[data-theme=dark]{
+  --bg:#171512; --panel:#201d19; --panel-2:#272320; --ink:#eee7dd; --ink-2:#ab9e8e;
+  --line:#332d27; --line-2:#443c33; --accent:#7fc2ac; --accent-soft:#1d2f2a;
+  --warm:#e0946b; --warm-soft:#33241b;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 20px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+[hidden]{display:none !important}
+html{font-size:16.5px}
+body{background:var(--bg);color:var(--ink);line-height:1.7;
+  font-family:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif}
+button{font:inherit;cursor:pointer} a{color:var(--accent)}
+.gb-wrap{max-width:var(--maxw);margin:0 auto;padding:20px 22px 80px}
+.gb-top{background:var(--panel);border-bottom:1px solid var(--line);
+  box-shadow:var(--shadow);position:sticky;top:0;z-index:40}
+.gb-topin{max-width:var(--maxw);margin:0 auto;padding:11px 22px;
+  display:flex;gap:12px;align-items:center}
+.gb-mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-weight:700}
+.gb-tt{font-weight:700}
+.gb-tt small{display:block;font-size:12px;color:var(--ink-2);font-weight:400}
+.gb-theme{margin-left:auto;border:1px solid var(--line-2);background:var(--panel-2);
+  color:var(--ink-2);border-radius:8px;padding:6px 12px;font-size:13px}
+.gb-note{margin:16px 0 0;padding:12px 16px;border:1px solid var(--line-2);
+  border-left:3px solid var(--warm);border-radius:0 10px 10px 0;
+  background:var(--warm-soft);font-size:14px}
+h1{font-size:1.5rem;margin:16px 0 6px}
+.gb-lede{margin:0 0 4px;color:var(--ink-2);font-size:14.5px;max-width:60em}
+.gb-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:18px 20px;margin-top:18px}
+.gb-card h2{margin:0 0 4px;font-size:1.05rem}
+.gb-sub{margin:0 0 14px;font-size:13.5px;color:var(--ink-2)}
+
+.gb-tabs{display:flex;flex-wrap:wrap;gap:7px}
+.gb-tab{border:1px solid var(--line-2);background:var(--panel-2);color:var(--ink);
+  border-radius:99px;padding:6px 13px;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.gb-tab:hover{border-color:var(--accent)}
+.gb-tab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.gb-tab .n{font-size:11.5px;opacity:.75}
+.gb-tab .dot{width:7px;height:7px;border-radius:99px;background:var(--warm)}
+.gb-tab.on .dot{background:#fff}
+
+.gb-def{margin:14px 0 0;padding:12px 15px;border:1px solid var(--line-2);border-radius:11px;
+  background:var(--panel-2);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.gb-def b{font-size:14px}
+.gb-hint{font-size:12.5px;color:var(--ink-2);flex:1 1 16em;min-width:12em}
+
+.gb-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 4px}
+.gb-bar input[type=search]{font:inherit;font-size:14px;padding:7px 11px;
+  border:1px solid var(--line-2);border-radius:9px;background:var(--panel-2);
+  color:var(--ink);min-width:14em}
+.gb-chk{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink-2)}
+.gb-cnt{margin-left:auto;font-size:13px;color:var(--ink-2)}
+
+.gb-tab-wrap{overflow-x:auto}
+.gb-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.gb-tbl th{text-align:left;font-size:12.5px;color:var(--ink-2);font-weight:600;
+  padding:7px 8px;border-bottom:1px solid var(--line-2);white-space:nowrap;
+  position:sticky;top:0;z-index:2;background:var(--panel)}
+.gb-tbl td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.gb-row:hover td{background:var(--panel-2)}
+.gb-row.open td{background:var(--accent-soft)}
+.gb-id{font-variant-numeric:tabular-nums;color:var(--ink-2);font-size:13px;white-space:nowrap}
+.gb-title{font-weight:600}
+.gb-mcell{text-align:center;width:86px}
+.gb-scell{width:66px;text-align:right}
+
+.gb-sw{border:0;background:none;padding:2px;display:inline-block;line-height:0}
+.gb-sw i{width:38px;height:21px;border-radius:99px;background:var(--line-2);
+  display:block;transition:background .15s;position:relative}
+.gb-sw i::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;
+  border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);
+  transition:transform .15s}
+.gb-sw.on i{background:var(--accent)}
+.gb-sw.on i::after{transform:translateX(17px)}
+.gb-sw.inh i{opacity:.42}
+.gb-sw:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:99px}
+.gb-swlab{display:block;font-size:10.5px;color:var(--ink-2);margin-top:1px;
+  height:14px;white-space:nowrap}
+.gb-swlab.w{color:var(--warm)}
+.gb-set{border:1px solid var(--line-2);background:var(--panel);color:var(--ink);
+  border-radius:8px;padding:5px 11px;font-size:13px;white-space:nowrap}
+.gb-set:hover{border-color:var(--accent);color:var(--accent)}
+.gb-row.open .gb-set{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.gb-panelrow>td{padding:0;background:var(--panel-2) !important}
+.gb-panel{padding:16px 18px 18px;border-left:3px solid var(--accent)}
+.gb-who{margin:0 0 12px;font-size:13.5px;color:var(--ink-2)}
+.gb-seg{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
+.gb-seg button{border:1px solid var(--line-2);background:var(--panel);color:var(--ink);
+  border-radius:8px;padding:6px 14px;font-size:13.5px}
+.gb-seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.gb-state{font-size:13.5px;margin:0 0 12px;padding:8px 12px;border-radius:9px;
+  background:var(--panel);border:1px solid var(--line)}
+.gb-state.ison{border-left:3px solid var(--accent)}
+.gb-state.isoff{border-left:3px solid var(--line-2);color:var(--ink-2)}
+.gb-grid{display:grid;grid-template-columns:1fr 12em;gap:12px;max-width:52em}
+.gb-f{display:grid;gap:4px;font-size:13.5px;font-weight:600}
+.gb-f input{font:inherit;font-weight:400;font-size:14px;padding:7px 10px;
+  border:1px solid var(--line-2);border-radius:8px;background:var(--panel);color:var(--ink)}
+.gb-fs{border:1px solid var(--line);border-radius:10px;padding:10px 14px 12px;
+  margin:12px 0 0;max-width:52em}
+.gb-fs legend{font-size:13px;font-weight:600;padding:0 6px}
+.gb-pks{display:flex;flex-wrap:wrap;gap:9px 14px}
+.gb-pk{display:flex;gap:5px;align-items:center;font-size:13.5px}
+.gb-tools{margin:8px 0 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.gb-link{border:0;background:none;color:var(--accent);font-size:13px;
+  padding:0;text-decoration:underline}
+.gb-mt{font-size:12.5px;color:var(--ink-2);margin:8px 0 0;max-width:44em}
+.gb-acts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
+.gb-btn{border:1px solid var(--line-2);background:var(--panel);color:var(--ink);
+  border-radius:9px;padding:8px 16px;font-size:14px}
+.gb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.gb-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.gb-btn.primary:hover{filter:brightness(1.1);color:#fff}
+
+.gb-batch{position:sticky;bottom:0;z-index:5;margin-top:10px;background:var(--panel);
+  border:1px solid var(--accent);border-radius:11px;box-shadow:var(--shadow);
+  padding:11px 15px;display:flex;gap:11px;align-items:center;flex-wrap:wrap;font-size:14px}
+.gb-batch b{color:var(--accent)}
+.gb-batch select{font:inherit;font-size:13.5px;padding:6px 9px;
+  border:1px solid var(--line-2);border-radius:8px;background:var(--panel-2);color:var(--ink)}
+.gb-warn{color:var(--warm)}
+.gb-empty{padding:20px 8px;color:var(--ink-2);font-size:14px}
+.gb-foot{margin:34px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.9}
+.gb-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;
+  background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;
+  font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.28);opacity:0;
+  pointer-events:none;transition:opacity .18s}
+.gb-toast.show{opacity:1}
+@media (max-width:820px){
+  .gb-grid{grid-template-columns:1fr}
+  .gb-tbl .gb-sm{display:none}
+  .gb-mcell{width:72px}
+  .gb-tbl{min-width:520px}
+  .gb-tbl th{position:static}
+}
+@media print{.gb-top,.gb-batch,.gb-theme{display:none}.gb-card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="gb-top"><div class="gb-topin">
+  <span class="gb-mark">預</span>
+  <span class="gb-tt">〈系統名稱〉· 批次設定台<small>預覽骨架（不會存任何東西）</small></span>
+  <button class="gb-theme" id="gbTheme" type="button">跟隨系統</button>
+</div></header>
+
+<div class="gb-wrap">
+
+<p class="gb-note">這是<b>樣板預覽</b>，不是正在跑的系統。你在這頁上按的每一個開關
+都只改瀏覽器裡的暫存，關掉分頁就沒了，<b>不會動到任何正式資料</b>。
+頁面上的群組、項目與人名全部是<b>虛構的示範資料</b>。</p>
+
+<h1>先選群組 → 看這一組的每一項 → 就地設定</h1>
+<p class="gb-lede">〈一句話說明：這一頁是用來決定什麼的〉。
+每一項後面就有開關，要填細節再按那一列的「設定」（就地展開、不跳頁），
+也可以勾好幾項一次套用。</p>
+
+<section class="gb-card">
+  <h2>設定</h2>
+  <p class="gb-sub">〈一行說明三個模組各是什麼〉</p>
+
+  <noscript><p class="gb-warn">⚠ 這個瀏覽器把 JavaScript 關掉了，
+  下面的設定區看不到。這是預覽骨架，正式版請確保沒有 JS 時仍讀得到現況。</p></noscript>
+
+  <div class="gb-tabs" id="gbTabs"></div>
+  <div class="gb-def" id="gbDef"></div>
+
+  <div class="gb-bar">
+    <input type="search" id="gbQ" placeholder="在這一組裡找（編號或名稱）" aria-label="在這一組裡找">
+    <label class="gb-chk"><input type="checkbox" id="gbOnly"> 只看已經開了的</label>
+    <label class="gb-chk"><input type="checkbox" id="gbAll"> 全選這一組</label>
+    <span class="gb-cnt" id="gbCnt"></span>
+  </div>
+
+  <div class="gb-tab-wrap">
+    <table class="gb-tbl"><thead><tr>
+      <th></th><th>編號</th><th>項目</th>
+      <th class="gb-mcell" id="gbH0"></th>
+      <th class="gb-mcell" id="gbH1"></th>
+      <th class="gb-mcell" id="gbH2"></th>
+      <th class="gb-sm">狀態</th><th></th>
+    </tr></thead><tbody id="gbBody"></tbody></table>
+  </div>
+  <p class="gb-empty" id="gbEmpty" hidden>這一組沒有符合的項目。</p>
+
+  <div class="gb-batch" id="gbBatch" hidden>
+    已勾選 <b id="gbN">0</b> 項<span id="gbHid" class="gb-warn"></span> ｜
+    <select id="gbKind" aria-label="要批次套用哪一項設定"></select>
+    <button class="gb-btn primary" type="button" id="gbOn">對這幾項開啟</button>
+    <button class="gb-btn" type="button" id="gbOff">對這幾項關閉</button>
+    <button class="gb-btn" type="button" id="gbClear">取消勾選</button>
+    <span class="gb-mt" style="margin:0">批次用預設值；要填細節在該項按「設定」。</span>
+  </div>
+</section>
+
+<p class="gb-foot">預覽骨架，單檔離線、不連任何外部網站、不回傳任何資料。
+頁面上出現的群組、項目與人名<b>全部是虛構的示範資料</b>，與任何真實對象無關。</p>
+</div>
+
+<div class="gb-toast" id="gbToast" role="status"></div>
+
+<!-- ① 改這裡：模組（設定項）與人員清單 ────────────────────────────── -->
+<script id="gbConfig" type="application/json">
+{
+  "modules": [
+    ["modA", "模組Ａ", true],
+    ["modB", "模組Ｂ", false],
+    ["modC", "模組Ｃ", false]
+  ],
+  "roster": ["王培真", "李孟璇", "陳彥霖", "林思妤", "張紹恩",
+             "黃郁婷", "吳柏彥", "劉宛儒", "蔡宗翰", "許雅晴"]
+}
+</script>
+<!--
+  modules 的第三個值＝這個模組要不要「指定對象」。
+    true  → 設定盤會出現人員勾選框（例：需要指定誰必讀／誰負責）
+    false → 只有開關與說明（例：附件、留言）
+  roster 換成你的對象來源。骨架寫死是為了離線可點；正式版從 API 讀。
+-->
+
+<!-- ③ 改這裡：你的「群組 → 項目」資料 ─────────────────────────────── -->
+<script id="gbData" type="application/json">
+[
+  {"name": "第一組 入門與基本規範", "items": [
+    {"id": "01-01", "title": "示範項目：第一項的名稱"},
+    {"id": "01-02", "title": "示範項目：第二項的名稱"},
+    {"id": "01-03", "title": "示範項目：第三項的名稱"}
+  ]},
+  {"name": "第二組 日常作業流程", "items": [
+    {"id": "02-01", "title": "示範項目：流程的第一步"},
+    {"id": "02-02", "title": "示範項目：流程的第二步"},
+    {"id": "02-03", "title": "示範項目：流程的第三步"},
+    {"id": "02-04", "title": "示範項目：例外情況怎麼處理"}
+  ]},
+  {"name": "第三組 表單與紀錄", "items": [
+    {"id": "03-01", "title": "示範項目：表單填寫說明"},
+    {"id": "03-02", "title": "示範項目：紀錄保存期限"}
+  ]},
+  {"name": "第四組 其他", "items": [
+    {"id": "04-01", "title": "示範項目：尚未分類的東西"}
+  ]}
+]
+</script>
+
+<template id="gbWhoTpl"></template>
+
+<script>
+(function(){
+  var CFG, DATA, ROSTER, MODS;
+  try{
+    CFG = JSON.parse(document.getElementById('gbConfig').textContent);
+    DATA = JSON.parse(document.getElementById('gbData').textContent);
+    ROSTER = CFG.roster || [];
+    MODS = CFG.modules || [];
+  }catch(e){
+    document.getElementById('gbBody').innerHTML =
+      '<tr><td colspan="8" class="gb-warn">設定或資料讀不出來（' + e.message +
+      '）。不要當成「這裡本來就沒東西」。</td></tr>';
+    return;
+  }
+  var LABEL = {}, NEEDS_WHO = {};
+  for(var i=0;i<MODS.length;i++){ LABEL[MODS[i][0]] = MODS[i][1]; NEEDS_WHO[MODS[i][0]] = !!MODS[i][2]; }
+
+  /* CONF 是這份骨架的假狀態。正式版換成伺服器回來的設定。 */
+  var CONF = {items:{}, groups:{}};
+  var cur = 0, openId = null, openKind = MODS[0] ? MODS[0][0] : '', q = '', onlyOn = false;
+  var picked = {}, busy = false;
+
+  var GROUP_OF = {}, TITLE_OF = {};
+  for(var g=0; g<DATA.length; g++){
+    for(var j=0; j<DATA[g].items.length; j++){
+      GROUP_OF[DATA[g].items[j].id] = DATA[g].name;
+      TITLE_OF[DATA[g].items[j].id] = DATA[g].items[j].title;
+    }
+  }
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function has(o, k){ return o && Object.prototype.hasOwnProperty.call(o, k); }
+  function one(v, from){
+    var d = (v && typeof v === 'object') ? v : null;
+    return {on: !!(d && d.on), from: from, conf: d};
+  }
+  /* 有效狀態＝單項優先，否則承整組。
+     **接後端時，這一段必須跟伺服器端的規則逐字一致**——
+     兩邊對「這一項到底開了沒」的答案只要不同，畫面顯示的就是假的。
+     判斷「鍵在不在」而不是「值真不真」：值是 null 的那一筆代表「已明確設定為關」。 */
+  function eff(id, kind){
+    var per = CONF.items[id];
+    if(has(per, kind)) return one(per[kind], 'item');
+    var gr = CONF.groups[GROUP_OF[id]];
+    if(has(gr, kind)) return one(gr[kind], 'group');
+    return {on:false, from:'none', conf:null};
+  }
+  function groupOn(name, kind){ var c = (CONF.groups[name] || {})[kind]; return !!(c && c.on); }
+  function anyOn(id){
+    for(var k=0;k<MODS.length;k++) if(eff(id, MODS[k][0]).on) return true;
+    return false;
+  }
+  function liveWho(conf){
+    var a = (conf && conf.who) || [];
+    if(a.indexOf('__all__') >= 0) return null;      // null＝全體
+    var out = [];
+    for(var i=0;i<a.length;i++) if(ROSTER.indexOf(a[i]) >= 0) out.push(a[i]);
+    return out;
+  }
+
+  /* ④ 改這裡：接上真正的 API。
+     骨架版直接改本地 CONF；正式版改成 fetch，並且——
+       · 成功時用**伺服器回來的設定**整段換掉 CONF，不要用送出去的那份
+       · 失敗時什麼都不要改，訊息要說「這次的變更沒有生效」
+       · 不論成功失敗都走同一個 render()，讓輸入控制項一起重建 */
+  function save(payload, okMsg){
+    if(busy) return;
+    busy = true;
+    var target = payload.scope === 'group'
+      ? (CONF.groups[payload.key] = CONF.groups[payload.key] || {})
+      : (CONF.items[payload.key] = CONF.items[payload.key] || {});
+    var old = (target[payload.kind] && typeof target[payload.kind] === 'object')
+      ? target[payload.kind] : {};
+    if(payload.on){
+      /* 沒送細節來的時候（列上的開關就是這樣），用這一項原本存著的值，不是空白。 */
+      var who = (payload.who && payload.who.length) ? payload.who
+              : (old.who && old.who.length ? old.who : null);
+      if(!who && NEEDS_WHO[payload.kind]) who = ['__all__'];
+      target[payload.kind] = {
+        on: true, who: who || [],
+        note: payload.note || old.note || '',
+        due: payload.due || old.due || ''
+      };
+    }else{
+      /* 關掉＝存一筆明確的關閉，而且**把已填的細節留著**。
+         純粹刪掉的話：整組開著時它會退回繼承又變成開的（畫面卻說已關閉），
+         而且關一下再開，使用者填過的東西就無聲消失了。 */
+      target[payload.kind] = {on:false, who: old.who || [],
+                              note: old.note || '', due: old.due || ''};
+    }
+    busy = false;
+    if(okMsg) toast(okMsg);
+    render();
+  }
+  function toast(msg){
+    var t = document.getElementById('gbToast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('show'); }, 2000);
+  }
+
+  function renderTabs(){
+    var h = '';
+    for(var i=0;i<DATA.length;i++){
+      var n = 0;
+      for(var j=0;j<DATA[i].items.length;j++) if(anyOn(DATA[i].items[j].id)) n++;
+      h += '<button type="button" class="gb-tab' + (i === cur ? ' on' : '') +
+        '" data-g="' + i + '" aria-pressed="' + (i === cur) + '">' + esc(DATA[i].name) +
+        '<span class="n">' + DATA[i].items.length + ' 項</span>' +
+        (n ? '<span class="dot" title="這一組有設定"></span>' : '') + '</button>';
+    }
+    document.getElementById('gbTabs').innerHTML = h;
+  }
+  function renderDef(){
+    var name = DATA[cur].name;
+    var h = '<b>整組預設</b><span class="gb-hint">打開的話，這一組每一項都自動有；' +
+      '個別項仍可單獨關掉。</span>';
+    for(var k=0;k<MODS.length;k++){
+      var kind = MODS[k][0], on = groupOn(name, kind);
+      h += '<span style="text-align:center"><button type="button" class="gb-sw' +
+        (on ? ' on' : '') + '" data-gsw="' + kind + '" aria-pressed="' + on +
+        '" aria-label="' + esc(name) + ' 整組的' + esc(MODS[k][1]) + '"><i></i></button>' +
+        '<span class="gb-swlab">' + esc(MODS[k][1]) + '</span></span>';
+    }
+    document.getElementById('gbDef').innerHTML = h;
+  }
+  function rows(){
+    var out = [], a = DATA[cur].items;
+    for(var i=0;i<a.length;i++){
+      if(q && (a[i].id + a[i].title).toLowerCase().indexOf(q) < 0) continue;
+      if(onlyOn && !anyOn(a[i].id)) continue;
+      out.push(a[i]);
+    }
+    return out;
+  }
+  function renderList(){
+    var list = rows(), h = '';
+    for(var i=0;i<list.length;i++){
+      var it = list[i], id = it.id;
+      h += '<tr class="gb-row' + (openId === id ? ' open' : '') + '" data-id="' + esc(id) + '">' +
+        '<td style="width:30px"><input type="checkbox" data-pick="' + esc(id) + '"' +
+        (picked[id] ? ' checked' : '') + ' aria-label="勾選 ' + esc(id) + '"></td>' +
+        '<td class="gb-id">' + esc(id) + '</td>' +
+        '<td class="gb-title">' + esc(it.title) + '</td>';
+      var onCount = 0;
+      for(var k=0;k<MODS.length;k++){
+        var kind = MODS[k][0], e = eff(id, kind);
+        if(e.on) onCount++;
+        var cls = 'gb-sw' + (e.on ? ' on' : '') + (e.on && e.from === 'group' ? ' inh' : '');
+        /* 三種狀態各自有字。「承整組」這類文言用法看不懂，寫成整句白話。 */
+        var lab = e.on ? (e.from === 'group' ? '跟著整組' : '開著')
+                       : (e.from === 'item' ? '這項不用' : '');
+        h += '<td class="gb-mcell"><button type="button" class="' + cls + '" data-sw="' + kind +
+          '" data-id="' + esc(id) + '" aria-pressed="' + e.on +
+          '" aria-label="' + esc(id) + ' 的' + esc(LABEL[kind]) + '"><i></i></button>' +
+          '<span class="gb-swlab' + (lab === '這項不用' ? ' w' : '') + '">' + lab + '</span></td>';
+      }
+      h += '<td class="gb-sm">' + (onCount ? ('開了 ' + onCount + ' 項') : '—') + '</td>' +
+        '<td class="gb-scell"><button type="button" class="gb-set" data-set="' + esc(id) +
+        '" aria-expanded="' + (openId === id) + '" aria-label="設定 ' + esc(id) +
+        '">設定</button></td></tr>';
+      if(openId === id) h += panel(id);
+    }
+    document.getElementById('gbBody').innerHTML = h;
+    /* **每次重畫都要把勾選框補回來，而且這是唯一的呼叫點。**
+       散在各個事件處理器裡的話，「存檔成功 → 重畫」那條路一定會漏掉。 */
+    if(openId) fillWho(openId);
+    document.getElementById('gbEmpty').hidden = !!list.length;
+    document.getElementById('gbCnt').textContent =
+      '顯示 ' + list.length + ' / ' + DATA[cur].items.length + ' 項';
+    renderBatch();
+  }
+  function panel(id){
+    var e = eff(id, openKind), c = e.conf || {};
+    var live = liveWho(c), all = live === null || !live.length;
+    var h = '<tr class="gb-panelrow"><td colspan="8"><div class="gb-panel">';
+    /* 面板只寫「這一項」的話，捲下去就不知道正在設哪一項了。 */
+    h += '<p class="gb-who">正在設定：<b>' + esc(id) + '　' + esc(TITLE_OF[id] || '') + '</b></p>';
+    h += '<div class="gb-seg">';
+    for(var k=0;k<MODS.length;k++){
+      h += '<button type="button" data-kind="' + MODS[k][0] + '"' +
+        (openKind === MODS[k][0] ? ' class="on"' : '') + '>' + esc(MODS[k][1]) +
+        (eff(id, MODS[k][0]).on ? ' ●' : '') + '</button>';
+    }
+    h += '</div>';
+    var st, cls;
+    if(e.on && e.from === 'group'){
+      st = '這一項的' + esc(LABEL[openKind]) + '是<b>跟著整組的設定</b>而開著。' +
+        '按「只關掉這一項」可以單獨關，不影響同組其他項。'; cls = 'ison';
+    }else if(e.on){
+      var who = '';
+      if(NEEDS_WHO[openKind]){
+        if(live === null) who = '（全體 ' + ROSTER.length + ' 人）';
+        else if(!live.length) who = '（<b>指定的對象都不在清單裡了</b>，等於沒有人）';
+        else who = '（指定 ' + live.length + ' 人）';
+      }
+      st = '這一項的' + esc(LABEL[openKind]) + '<b>開著</b>' + who + '。'; cls = 'ison';
+    }else if(e.from === 'item'){
+      st = '這一項<b>單獨關掉</b>了' + esc(LABEL[openKind]) +
+        '（就算整組打開，這一項也不會有）。'; cls = 'isoff';
+    }else{
+      st = '這一項目前<b>沒有</b>' + esc(LABEL[openKind]) + '。'; cls = 'isoff';
+    }
+    h += '<p class="gb-state ' + cls + '">' + st + '</p>';
+    h += '<div class="gb-grid">' +
+      '<label class="gb-f">說明（對方看得到，可不填）<input id="gbNote" maxlength="100" value="' +
+      esc(c.note || '') + '" placeholder="例如：〈一句給對方看的提示〉"></label>' +
+      '<label class="gb-f">期限（可不填）<input id="gbDue" type="date" value="' +
+      esc(c.due || '') + '"></label></div>';
+    if(NEEDS_WHO[openKind]){
+      h += '<fieldset class="gb-fs"><legend>要指定哪些人</legend>' +
+        '<div class="gb-pks" id="gbWho"></div>' +
+        '<div class="gb-tools"><button type="button" class="gb-link" data-whoall>全選</button>' +
+        '<button type="button" class="gb-link" data-whonone>全部取消</button></div>' +
+        '<p class="gb-mt">沒有勾任何人＝全體（之後新加入的人會自動算進來）。</p></fieldset>';
+    }
+    h += '<div class="gb-acts">' +
+      '<button type="button" class="gb-btn primary" data-apply>套用到這一項</button>' +
+      '<button type="button" class="gb-btn" data-off>' +
+      (e.on && e.from === 'group' ? '只關掉這一項' : '關掉這一項') + '</button>' +
+      '<button type="button" class="gb-btn" data-close>收起</button></div>';
+    h += '</div></td></tr>';
+    return h;
+  }
+  /* 勾選框從 template 複製，不在 JS 裡拼名字——名字裡的引號或角括號會打斷整段 HTML。 */
+  function fillWho(id){
+    var box = document.getElementById('gbWho');
+    if(!box) return;
+    box.appendChild(document.getElementById('gbWhoTpl').content.cloneNode(true));
+    var live = liveWho(eff(id, openKind).conf);
+    var cs = box.querySelectorAll('[data-who]');
+    for(var i=0;i<cs.length;i++){
+      cs[i].checked = (live !== null) && live.indexOf(cs[i].value) >= 0;
+    }
+  }
+  function pickedIds(){
+    var out = [];
+    for(var k in picked) if(picked[k]) out.push(k);
+    return out;
+  }
+  function renderBatch(){
+    var ids = pickedIds(), bar = document.getElementById('gbBatch');
+    bar.hidden = !ids.length;
+    if(!ids.length) return;
+    document.getElementById('gbN').textContent = ids.length;
+    /* 勾完再改搜尋條件時，被篩掉的那幾項還在勾選裡。不偷偷清掉，但一定要說出來。 */
+    var shown = {}, list = rows(), hid = 0;
+    for(var i=0;i<list.length;i++) shown[list[i].id] = 1;
+    for(var j=0;j<ids.length;j++) if(!shown[ids[j]]) hid++;
+    document.getElementById('gbHid').textContent =
+      hid ? ('（其中 ' + hid + ' 項目前沒顯示在畫面上）') : '';
+  }
+  function render(){ renderTabs(); renderDef(); renderList(); }
+
+  document.getElementById('gbTabs').addEventListener('click', function(ev){
+    var b = ev.target.closest('[data-g]');
+    if(!b || busy) return;
+    cur = +b.dataset.g; openId = null; picked = {}; render();
+  });
+  document.getElementById('gbDef').addEventListener('click', function(ev){
+    var b = ev.target.closest('[data-gsw]');
+    if(!b || busy) return;
+    var kind = b.dataset.gsw, name = DATA[cur].name, on = !groupOn(name, kind);
+    save({scope:'group', key:name, kind:kind, on:on},
+         (on ? '整組開啟：' : '整組關閉：') + name + ' 的' + LABEL[kind]);
+  });
+  var body = document.getElementById('gbBody');
+  body.addEventListener('click', function(ev){
+    var t = ev.target, el;
+    if((el = t.closest('[data-sw]'))){
+      var id = el.dataset.id, kind = el.dataset.sw, on = !eff(id, kind).on;
+      save({scope:'item', key:id, kind:kind, on:on},
+           (on ? '已開啟 ' : '已關閉 ') + id + ' 的' + LABEL[kind]);
+      return;
+    }
+    if((el = t.closest('[data-set]'))){
+      openId = (openId === el.dataset.set) ? null : el.dataset.set;
+      renderList(); return;
+    }
+    if((el = t.closest('[data-kind]'))){ openKind = el.dataset.kind; renderList(); return; }
+    if(t.closest('[data-whoall]') || t.closest('[data-whonone]')){
+      var want = !!t.closest('[data-whoall]'), cs = body.querySelectorAll('[data-who]');
+      for(var i=0;i<cs.length;i++) cs[i].checked = want;
+      return;
+    }
+    if(t.closest('[data-close]')){ openId = null; renderList(); return; }
+    if(t.closest('[data-apply]')){
+      var who = [], sel = body.querySelectorAll('[data-who]:checked');
+      for(var j=0;j<sel.length;j++) who.push(sel[j].value);
+      var note = document.getElementById('gbNote'), due = document.getElementById('gbDue');
+      save({scope:'item', key:openId, kind:openKind, on:true, who:who,
+            note: note ? note.value : '', due: due ? due.value : ''},
+           '已套用：' + openId + ' 的' + LABEL[openKind]);
+      return;
+    }
+    if(t.closest('[data-off]')){
+      save({scope:'item', key:openId, kind:openKind, on:false},
+           '已關閉：' + openId + ' 的' + LABEL[openKind]);
+      return;
+    }
+  });
+  body.addEventListener('change', function(ev){
+    var pk = ev.target.closest('[data-pick]');
+    if(pk){ picked[pk.dataset.pick] = pk.checked; renderBatch(); }
+  });
+  document.getElementById('gbQ').addEventListener('input', function(e){
+    q = e.target.value.trim().toLowerCase(); renderList();
+  });
+  document.getElementById('gbOnly').addEventListener('change', function(e){
+    onlyOn = e.target.checked; renderList();
+  });
+  document.getElementById('gbAll').addEventListener('change', function(e){
+    var list = rows();
+    for(var i=0;i<list.length;i++) picked[list[i].id] = e.target.checked;
+    renderList();
+  });
+  /* 批次會一次動到很多項，而勾選的那些可能已經捲出畫面。先問一句。 */
+  function batch(on){
+    var ids = pickedIds();
+    if(!ids.length || busy) return;
+    var kind = document.getElementById('gbKind').value;
+    if(!confirm('要對勾選的 ' + ids.length + ' 項' + (on ? '開啟' : '關閉') +
+                LABEL[kind] + '嗎？\n\n' + ids.join('、'))) return;
+    for(var i=0;i<ids.length;i++) save({scope:'item', key:ids[i], kind:kind, on:on});
+    picked = {};
+    toast('已對 ' + ids.length + ' 項' + (on ? '開啟' : '關閉') + LABEL[kind]);
+    render();
+  }
+  document.getElementById('gbOn').addEventListener('click', function(){ batch(true); });
+  document.getElementById('gbOff').addEventListener('click', function(){ batch(false); });
+  document.getElementById('gbClear').addEventListener('click', function(){
+    picked = {}; render();
+  });
+  document.getElementById('gbTheme').addEventListener('click', function(){
+    var h = document.documentElement, now = h.getAttribute('data-theme');
+    var next = now === 'dark' ? 'light' : (now === 'light' ? '' : 'dark');
+    if(next) h.setAttribute('data-theme', next); else h.removeAttribute('data-theme');
+    this.textContent = next === 'dark' ? '深色' : (next === 'light' ? '淺色' : '跟隨系統');
+  });
+
+  /* 表頭與批次下拉的文字都來自 CONFIG，改模組名只要改一個地方。 */
+  for(var k=0;k<3;k++){
+    var th = document.getElementById('gbH' + k);
+    if(th) th.textContent = MODS[k] ? MODS[k][1] : '';
+  }
+  var sel = document.getElementById('gbKind'), opts = '';
+  for(var m=0;m<MODS.length;m++) opts += '<option value="' + MODS[m][0] + '">' +
+    esc(MODS[m][1]) + '</option>';
+  sel.innerHTML = opts;
+  var tpl = document.getElementById('gbWhoTpl'), who = '';
+  for(var r=0;r<ROSTER.length;r++) who += '<label class="gb-pk"><input type="checkbox" ' +
+    'data-who value="' + esc(ROSTER[r]) + '"> ' + esc(ROSTER[r]) + '</label>';
+  tpl.innerHTML = who;
+
+  render();
+})();
+</script>
+</body>
+</html>

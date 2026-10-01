@@ -33,9 +33,20 @@ class Report:
     def __init__(self, path: Path) -> None:
         self.path = path
         self.rows: list[tuple[str, bool, str]] = []
+        self.skipped: list[tuple[str, str]] = []
 
     def check(self, name: str, ok: bool, detail: str = "") -> None:
         self.rows.append((name, ok, detail))
+
+    def skip(self, names: list[str], why: str) -> None:
+        """檢查沒跑就要說出來。
+
+        沒有這個方法之前，早退的檢查會靜默消失，總項數跟著縮水，
+        而 26/26 與 34/34 都印成「全綠」——一個會靜默跳過檢查的驗證器，
+        本身就是它在防的那種 fail-open。
+        """
+        for n in names:
+            self.skipped.append((n, why))
 
     @property
     def failed(self) -> list[tuple[str, bool, str]]:
@@ -46,6 +57,8 @@ class Report:
         for name, ok, detail in self.rows:
             mark = "PASS" if ok else "FAIL"
             lines.append(f"  [{mark}] {name}" + (f" → {detail}" if detail and not ok else ""))
+        for name, why in self.skipped:
+            lines.append(f"  [SKIP] {name} " + "→" + f" {why}")
         return "\n".join(lines)
 
 
@@ -98,10 +111,16 @@ def _check_counts(rep: Report, html: str) -> None:
     if m:
         rep.check("標題宣稱的則數＝實際卡片數", int(m.group(1)) == total,
                   f"標題寫 {m.group(1)}，實際 {total}")
+    else:
+        rep.skip(["標題宣稱的則數＝實際卡片數"],
+                 f"標題沒有宣告則數（實際 {total} 則），這項檢查無從比對")
     m = re.search(r"(\d+)\s*則標?「?需要你回答", head)
     if m:
         rep.check("標題宣稱的必答數＝實際必答數", int(m.group(1)) == need,
                   f"標題寫 {m.group(1)}，實際 {need}")
+    else:
+        rep.skip(["標題宣稱的必答數＝實際必答數"],
+                 f"標題沒有宣告必答數（實際 {need} 則），這項檢查無從比對")
 
 
 def _check_sections(rep: Report, html: str) -> None:
@@ -117,10 +136,15 @@ def _check_sections(rep: Report, html: str) -> None:
     )
 
 
+DEP_CHECKS = ["連動目標卡存在", "連動條件的選項值存在", "每條連動規則都寫了人話理由",
+              "recommend 指向本卡實際存在的選項", "連動無循環", "無單卡集群"]
+
+
 def _check_deps(rep: Report, html: str) -> None:
     """連動規則的形式檢查。機器只能驗形不能驗意，但打錯字造成的滅音全部擋得住。"""
     cards = {cid: body for cid, body in ARTICLE.findall(html)}
     if not cards:
+        rep.skip(DEP_CHECKS, "找不到任何 data-id 卡片，連動檢查全部沒跑")
         return
     opts: dict[str, set[str]] = {}
     for cid, val in OPT.findall(html):
@@ -156,6 +180,9 @@ def _check_deps(rep: Report, html: str) -> None:
                 bad_rec.append(f"{owner}:{do}")
 
     if not has_dep:
+        rep.skip(DEP_CHECKS,
+                 "沒有任何 data-when／data-do 連動規則；若頁面其實有依賴關係，"
+                 "代表它是用別的屬性名寫的，這 6 項一個字都沒被驗過")
         return
 
     rep.check("連動目標卡存在", not bad_target, "、".join(bad_target))
@@ -282,6 +309,13 @@ def validate(path: Path, kind: str) -> Report:
         _check_deps(rep, html)
 
     if kind == "workbench":
+        # 使用者 2026-10-01 明定：每一題都要有「▶ 試給我看」，按了跳到操作區實際跑一次。
+        # v2 曾因「題目示範不出來」讓使用者無從回答；v3 起每題可跑，他說這就是要的合作方式。
+        # data-need 可能寫在 data-id 前或後，所以看整張卡的開標籤
+        no_demo = [m.group(1) for m in ARTICLE.finditer(html)
+                   if 'data-need="1"' in m.group(0)[: m.group(0).find(">") + 1]
+                   and 'data-demo="' not in m.group(0)]
+        rep.check("每一題必答卡都有「▶ 試給我看」（data-demo）", not no_demo, "缺：" + "、".join(no_demo))
         practice_key = re.search(r"PRACTICE_KEY\s*=\s*([^,;]+)", html)
         reply_key = re.search(r"REPLY_KEY\s*=\s*([^,;]+)", html)
         rep.check(
@@ -340,12 +374,18 @@ def main() -> int:
 
     total = sum(len(r.rows) for r in reports)
     bad = sum(len(r.failed) for r in reports)
+    skipped = sum(len(r.skipped) for r in reports)
     names = "、".join(r.path.name for r in reports)
+    tail = f"，另有 {skipped} 項未執行／應跑 {total + skipped}" if skipped else ""
+    if skipped:
+        print(f"！有 {skipped} 項檢查沒有執行（見上方 SKIP）。"
+              f"總項數 {total + skipped} 之中只驗了 {total} 項——"
+              f"「全綠」不等於「都驗過」，先看分母再看比例。")
     if bad:
-        print(f"validate: FAIL ({total - bad}/{total}) — {names}")
+        print(f"validate: FAIL ({total - bad}/{total}{tail}) — {names}")
         print("修好之後重跑。未通過不得交付。")
         return 1
-    print(f"validate: PASS ({total}/{total}) — {names}")
+    print(f"validate: PASS ({total}/{total}{tail}) — {names}")
     return 0
 
 

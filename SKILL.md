@@ -90,6 +90,11 @@ description: 使用者的軟體與網頁工作作業系統，核心是「HTML �
 | **完整綜合台** | 新建軟體、改主要流程或資訊架構，而且存在可操作工作 | 操作體驗＋八節決策確認 | AI 1 輪，他邊試邊決定 |
 | **完整確認台** | 新建非軟體議題、改資料模型／對外介面、要花錢，但沒有合理操作面 | 獨立八節確認台 | AI 1 輪，他看 10 分鐘 |
 | **輕量預覽** | 改版面、改流程、調整既有畫面 | 一張可以點的畫面示意，不需要標記功能 | 1–2 分鐘 |
+
+> 輕量預覽也**先翻 `assets/` 與 `library/`**。已經有的骨架：
+> `assets/group-first-batch-console-template.html` —— 「對一批項目做同類設定」
+> 的管理台（先選群組 → 列出該組每一項 → 就地設定 → 勾選批次）。
+> 權限、標籤、上下架、指派、通知對象都是這個形狀。
 | **直接做** | 改一行字、換顏色、修錯字、改註解 | 不用預覽 | 立即 |
 
 判錯了不是災難——使用者說一聲「先給我看」就補一份輕量預覽。**寧可判低一檔被要求補，也不要每件小事都丟一頁確認台**（那會讓他開始略過所有確認台，這個技能當場死亡）。
@@ -118,6 +123,8 @@ description: 使用者的軟體與網頁工作作業系統，核心是「HTML �
 **產 A 或正式施工之前先回頭讀 C／B 的回覆檔**，不要問第二次同樣的事。
 
 ### 軌道 C 的狀態鐵律
+
+**每一題都要附「▶ 試給我看」**：按下去跳到操作區實際跑一次，看過才答（使用者 2026-10-01 明定為公版做法，`validate_html.py` 會擋）。題目示範不出來，就是題目還沒準備好。
 
 操作體驗、試用設定、未保存草稿與已保存意見必須分開。選選項、寫補充或點四態只形成草稿；API 成功或離線儲存成功後，才能顯示為已保存。試用某個方案不代表核准，重設操作資料不得清除決策。完整規格見 `references/integrated-review-workbench.md`。
 
@@ -220,6 +227,7 @@ python "$skill\scripts\validate_html.py" "<產出檔.html>"
    | 產操作體驗＋決策確認綜合台 | `references/integrated-review-workbench.md` |
    | 產協作確認台 | `references/review-console.md` |
    | 產客戶展示頁 | `references/client-demo.md` |
+   | 做「對一批項目做同類設定」的管理台預覽 | `assets/group-first-batch-console-template.html` |
    | 成本、CP 值、要不要付費 | `references/cost-and-tradeoffs.md` |
    | 交付前的相容性與降級 | `references/delivery-resilience.md` |
    | 專案盤點 | `references/project-intake.md` |

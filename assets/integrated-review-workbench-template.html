@@ -59,8 +59,18 @@ dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{dis
 .comment{width:100%;min-height:68px;border:1px solid var(--line2);border-radius:10px;padding:9px 11px;background:var(--soft);color:var(--ink)}
 .export{width:100%;min-height:210px;border:1px solid var(--line2);border-radius:10px;background:var(--soft);color:var(--ink);padding:12px}.submit{padding:18px;margin-top:24px}
 .nojs{display:block}.js .nojs{display:none}.footnote{font-size:13px;color:var(--muted)}
+/* 「▶ 試給我看」：每一題都能跳到操作體驗實際跑一次，使用者看過才答（使用者明定的公版做法） */
+.fnindex{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:8px;margin:12px 0 0}
+.fnindex button{text-align:left;border:1px solid var(--line2);background:var(--soft);border-radius:11px;padding:9px 11px;font-size:13px;color:var(--body);line-height:1.45}
+.fnindex button:hover{border-color:var(--accent);background:var(--surface)}.fnindex button b{display:block;color:var(--ink);font-size:14px}
+.btn.play{background:var(--hold);color:#fff;border-color:var(--hold);font-weight:650}
+.trybar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:var(--holdbg);border:1px solid var(--hold);border-radius:11px;padding:9px 11px;margin:10px 0}
+.trybar>span:first-child{font-size:13px;color:var(--hold);font-weight:650}
+.coach{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;max-width:min(760px,calc(100vw - 28px));background:var(--ink);color:var(--bg);border-radius:14px;padding:13px 16px;box-shadow:0 18px 44px rgba(0,0,0,.34);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.coach button{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:9px;padding:5px 11px;font-size:13px}
+.spot{outline:3px solid var(--accent);outline-offset:3px;border-radius:12px}
 @media(max-width:760px){.topin{padding:12px 14px}.tabs{width:100%;margin-left:0}.tab{flex:1}.wrap{padding:18px 14px 90px}.grid{grid-template-columns:1fr}.workbar .btn.primary{width:100%}.actions .btn{flex:1}.card{padding:15px}}
-@media print{.top,.workbar,.preview-settings,.sectionnav,.marks,.trial,.saveone,.submit .actions{display:none!important}.wrap{max-width:none;padding:0}.panel,.card,.item{box-shadow:none;break-inside:avoid}.hidden{display:block!important}body{background:#fff;color:#222}}
+@media print{.top,.workbar,.preview-settings,.sectionnav,.marks,.trial,.trybar,.coach,.fnindex,.saveone,.submit .actions{display:none!important}.wrap{max-width:none;padding:0}.panel,.card,.item{box-shadow:none;break-inside:avoid}.hidden{display:block!important}body{background:#fff;color:#222}}
 </style>
 </head>
 <body>
@@ -80,6 +90,11 @@ dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{dis
 
   <div id="experience" data-zone="experience">
     <div class="notice"><strong>操作體驗</strong>：以下均為虛構示範資料，只存於本瀏覽器，不會呼叫正式 API，也不代表已發布到正式環境。</div>
+    <section class="panel" id="fnPanel" style="padding:16px;margin-bottom:16px">
+      <h2>這一版可以操作的事</h2>
+      <p class="footnote" style="margin:0">按任何一格，畫面會帶到那裡並<strong>實際跑一次</strong>。示範只改虛構資料，不會勾選任何決策。</p>
+      <div class="fnindex jsonly" id="fnIndex"></div>
+    </section>
     <div class="workbar jsonly">
       <input class="search" id="workSearch" aria-label="搜尋工作項目" placeholder="搜尋名稱或說明">
       <button class="btn primary" id="newItem">＋ 新增項目</button>
@@ -139,6 +154,7 @@ dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{dis
           <label class="opt"><input type="radio" name="opt-Q1" value="B"><span><strong>{{選項 B}}</strong><small>{{白話說明}}</small><span class="impact">→ 影響：{{選了會發生什麼}}</span><span class="cost">代價：{{會失去什麼或多花什麼}}</span><button type="button" class="btn small trial" data-trial="option-B">試用此做法</button></span></label>
         </div>
         <div class="marks"><span>本題判斷：</span><button class="mk" data-m="ok">同意</button><button class="mk" data-m="edit">要改</button><button class="mk" data-m="no">不要</button><button class="mk" data-m="hold">待議</button></div>
+        <div class="trybar"><span>不確定怎麼選？</span><button type="button" class="btn small play jsonly" data-demo="Q1">▶ 試給我看：{{按下去會在操作區跑出什麼}}</button><span class="footnote">會跳到操作體驗實際跑一遍；試用不會勾選任何決策。</span></div>
         <textarea class="comment" aria-label="Q1 補充意見" placeholder="選填補充；輸入後仍是未保存草稿"></textarea>
         <div class="actions"><span class="state">尚未回答</span><button class="btn primary saveone" data-save="Q1">保存本題</button></div>
       </article>
@@ -151,6 +167,7 @@ dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{dis
           <label class="opt"><input type="radio" name="opt-D1" value="B"><span><strong>{{方向 B}}</strong><small>{{完整描述}}</small><span class="impact">→ 影響：{{功能、流程或資料的變化}}</span><span class="cost">代價：{{限制、維護或成本}}</span><button type="button" class="btn small trial" data-trial="decision-B">試用此做法</button></span></label>
         </div>
         <div class="marks"><span>本題判斷：</span><button class="mk" data-m="ok">同意</button><button class="mk" data-m="edit">要改</button><button class="mk" data-m="no">不要</button><button class="mk" data-m="hold">待議</button></div>
+        <div class="trybar"><span>不確定怎麼選？</span><button type="button" class="btn small play jsonly" data-demo="D1">▶ 試給我看：{{按下去會在操作區跑出什麼}}</button><span class="footnote">會跳到操作體驗實際跑一遍；試用不會勾選任何決策。</span></div>
         <textarea class="comment" aria-label="D1 補充意見" placeholder="選填補充；輸入後仍是未保存草稿"></textarea>
         <div class="actions"><span class="state">尚未回答</span><button class="btn primary saveone" data-save="D1">保存本題</button></div>
       </article>
@@ -180,6 +197,8 @@ dialog::backdrop{background:rgba(34,27,20,.44)}.dialogin{padding:22px}.field{dis
     <div class="actions"><button type="button" class="btn" id="cancelItem">取消</button><button type="button" class="btn primary" id="saveItem">儲存到本預覽</button></div>
   </form>
 </dialog>
+
+<div class="coach hidden" id="coach"><span id="coachText"></span><button type="button" id="coachStop">結束示範</button></div>
 
 <script>
 (()=>{
@@ -274,9 +293,26 @@ function trial(value){
   try{persist(REPLY_KEY,reply)}catch(e){say("試用紀錄無法保存："+(e.message||e))}
   say("已切換試用；沒有改變草稿或已保存意見。");
 }
+/* ── 試給我看 ──────────────────────────────
+   規則：每一題 data-need 卡片都要有一個 DEMOS 項目，按下去要「跳到操作區、真的改變畫面、用泡泡說明在看什麼」。
+   靜態畫面示範不出來的題目（計數口徑、命名、並行、鎖）尤其要做成可跑的模擬——那類題目沒有示範，使用者無從回答。 */
+function coach(html){$("#coachText").innerHTML=html;$("#coach").classList.remove("hidden")}
+function spot(sel){$$(".spot").forEach(x=>x.classList.remove("spot"));const el=$(sel);if(el){el.classList.add("spot");el.scrollIntoView({block:"center",behavior:"smooth"})}}
+const DEMOS={
+  Q1:()=>{spot("#workList");coach("{{Q1 示範：說明畫面上哪裡變了、跟選項有什麼關係}}")},
+  D1:()=>{spot("#workList");coach("{{D1 示範：說明畫面上哪裡變了、跟選項有什麼關係}}")}
+};
+const FN=[
+  ["{{功能名稱}}","{{一句話說明}}",()=>{$("#newItem").click()}],
+  ["{{功能名稱}}","{{一句話說明}}",()=>{spot("#workList")}]
+];
+function renderIndex(){$("#fnIndex").innerHTML=FN.map((f,i)=>`<button type="button" data-fn="${i}"><b>${esc(f[0])}</b><span class="footnote">${esc(f[1])}</span></button>`).join("")}
 document.addEventListener("click",async e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.view){show(b.dataset.view);return}
+  if(b.dataset.demo){show("experience");trial("demo:"+b.dataset.demo);(DEMOS[b.dataset.demo]||(()=>coach("這一題還沒有示範——交付前必須補上。")))();return}
+  if(b.dataset.fn){show("experience");FN[Number(b.dataset.fn)][2]();return}
+  if(b.id==="coachStop"){$("#coach").classList.add("hidden");$$(".spot").forEach(x=>x.classList.remove("spot"));return}
   if(b.id==="newItem"){$("#itemForm").reset();$("#itemMsg").textContent="";$("#itemDialog").showModal();$("#itemName").focus()}
   if(b.id==="cancelItem")$("#itemDialog").close();
   if(b.id==="saveItem"){
@@ -299,7 +335,7 @@ document.addEventListener("input",e=>{if(e.target.id==="workSearch")renderItems(
 document.addEventListener("change",e=>{if(e.target.matches(".card input[type=radio]"))rememberDraft(e.target.closest(".card"))});
 practice.items=Array.isArray(practice.items)?practice.items:[];reply.cards=reply.cards||{};reply.trials=Array.isArray(reply.trials)?reply.trials:[];
 document.body.classList.toggle("density-compact",practice.trial==="compact");$("#trialLabel").textContent=practice.trial==="compact"?"緊湊間距":"舒適間距";
-cards().forEach(syncCard);renderItems();show("experience");
+cards().forEach(syncCard);renderItems();renderIndex();show("experience");
 })();
 </script>
 </body>
