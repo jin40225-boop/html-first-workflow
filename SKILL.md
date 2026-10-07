@@ -251,6 +251,15 @@ python "$skill\scripts\capture_learning.py" "短標題" "教訓內容"
 
 ---
 
+## 六之二、美術：預設用「幾何活潑」套組，不要每次重畫
+
+使用者 2026-10-07 從四個風格提案（軟陶3D／貼紙拼貼／手繪繪本／幾何活潑）中選定**幾何活潑**，並要求做成萬用套組、以後直接沿用。
+
+- 位置：`assets/geo-playful-kit/`（96 圖示、16 人物、12 情境插畫、24 裝飾、標記與徽章、背景、`ui/tokens.css`＋`components.css`＋`echarts-theme.js`、`showcase.html`、`manifest.json`）。
+- **動手前先開 `showcase.html` 看、用 `manifest.json` 的關鍵字找**；有就直接用，沒有才委託新圖。
+- 要新圖時：照 `assets/geo-playful-kit/委託書.md` 的硬規則與 README 的「風格提示詞」委託 Codex 的 `image_gen`，用拼圖生成再切格（`tools/process_assets.py`）。
+- 委託美術的兩條教訓（2026-10-07）：① Codex 會偷懶改用 Pillow 程式「畫」圖（醜到被退件）——委託書必須明文禁止並要求逐檔列出 image_gen 提示詞；② 風格沒定案前**只做 3～4 張風格提案板**讓使用者選，選定才量產，不要先量產再被打槍。
+
 ## 七、設計原則
 
 - 從使用者真實的工作流程與資料出發，再選架構與介面。
