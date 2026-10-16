@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>設計規格 v1 活樣本</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+/* 本頁專用：只排版說明區，元件樣式全部來自 components.css */
+body{background:var(--ds-bg)}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:var(--ds-s5)}
+.sc-rule{font-size:var(--ds-fs-min);color:var(--ds-muted);margin:4px 0 var(--ds-s3)}
+.sc-demo{display:flex;flex-wrap:wrap;gap:var(--ds-s3);align-items:center;padding:var(--ds-s4);border:var(--ds-bw) dashed var(--ds-line2);
+  border-radius:var(--ds-r-card);background:var(--ds-bg);margin:var(--ds-s2) 0}
+.sc-sw{display:inline-flex;align-items:center;gap:8px;margin:4px 14px 4px 0;font-size:var(--ds-fs-min)}
+.sc-sw i{width:28px;height:28px;border-radius:8px;border:var(--ds-bw) solid var(--ds-line2);display:inline-block}
+.sc-footer{font-size:var(--ds-fs-min);color:var(--ds-muted);padding:var(--ds-s4) var(--ds-gutter) 40px}
+@media (max-width:900px){.sc-grid{grid-template-columns:1fr}}
+@media print{.sc-demo{border-style:solid}}
+</style>
+</head>
+<body class="ds">
+
+<header class="ds-top">
+  <span class="ds-name">示範系統</span>
+  <span class="ds-who">社工・示範身分</span>
+  <span class="ds-sp"></span>
+  <button class="ds-btn sm" id="btnCompact" type="button" aria-pressed="false">緊密版</button>
+  <button class="ds-btn sm" id="btnTheme" type="button">◐ 淺／深</button>
+  <span class="ds-ver" title="R-12：版本由系統自己顯示">v1.0.0 · abc1234（示範）</span>
+</header>
+
+<nav class="ds-tabs" aria-label="頁籤">
+  <button class="ds-tab" type="button" aria-selected="true">工作台 <span class="ds-count">3</span></button>
+  <button class="ds-tab" type="button" aria-selected="false">個案</button>
+  <button class="ds-tab icon" type="button" aria-selected="false">🧾 物品 <span class="ds-count">2</span></button>
+  <button class="ds-tab" type="button" aria-selected="false">統計</button>
+</nav>
+
+<main class="ds-main">
+
+  <div class="ds-hero busy" id="hero">
+    <span class="n" id="heroN">3</span>
+    <div><b>早安，今天有 3 件待處理</b><br><span class="ds-note">沒有待辦時這條會變安靜（淡底、不醒目）。</span></div>
+    <span class="ds-sp"></span>
+    <button class="ds-btn sm" id="btnQuiet" type="button">看安靜狀態</button>
+  </div>
+
+  <div class="ds-kpis" id="kpis">
+    <button class="ds-kpi" type="button" data-filter="all" aria-pressed="true"><span class="l">全部</span><span class="n">6 戶</span></button>
+    <button class="ds-kpi" type="button" data-filter="ok" aria-pressed="false"><span class="l">確定參加</span><span class="n">2 戶</span></button>
+    <button class="ds-kpi warn" type="button" data-filter="edit" aria-pressed="false"><span class="l">需確認</span><span class="n">2 戶</span></button>
+    <button class="ds-kpi" type="button" data-filter="pend" aria-pressed="false"><span class="l">待認領</span><span class="n">2 戶</span></button>
+  </div>
+
+  <div class="ds-pendbox">
+    <b>待認領 2 戶</b>
+    <span>外部報名直接進清單、橘框標示並排在最前面；預設畫面照樣顯示，按「認領」才算進戶數。</span>
+    <span class="ds-sp"></span>
+    <button class="ds-chip" id="btnOnlyPend" type="button" aria-pressed="false">只看待認領</button>
+  </div>
+
+  <section class="ds-card">
+    <h2>工作清單（主畫面高度與位置不變）</h2>
+    <p class="sc-rule">短內容、看狀態 → 就地展開一列；要編輯、預覽、看歷史 → 浮動視窗，按鈕長在那筆資料旁邊。</p>
+    <table class="ds-table" id="list">
+      <thead><tr><th>家戶</th><th>狀態</th><th>主責</th><th>聯絡</th><th>動作</th></tr></thead>
+      <tbody>
+        <tr class="ds-pending" data-st="pend"><td>陳○華 家</td><td><span class="ds-badge pend">待處理</span></td><td>—</td><td>末四碼 2468</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="claim">認領</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+        <tr class="ds-pending" data-st="pend"><td>林○君 家</td><td><span class="ds-badge pend">待處理</span></td><td>—</td><td>末四碼 1357</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="claim">認領</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+        <tr data-st="ok"><td>王○明 家</td><td><span class="ds-badge ok">完成</span></td><td>示範社工甲</td><td>末四碼 8642</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="mark">標為已聯絡</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+        <tr data-st="ok"><td>張○芳 家</td><td><span class="ds-badge ok">完成</span></td><td>示範社工乙</td><td>末四碼 9753</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="mark">標為已聯絡</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+        <tr data-st="edit"><td>李○安 家</td><td><span class="ds-badge edit">待補</span></td><td>示範社工甲</td><td>末四碼 1122</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="mark">標為已聯絡</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+        <tr data-st="edit"><td>黃○婷 家</td><td><span class="ds-badge hold">暫緩</span></td><td>示範社工乙</td><td>末四碼 3344</td><td class="ds-row"><button class="ds-btn sm" type="button" data-act="mark">標為已聯絡</button><button class="ds-btn sm" type="button" data-act="expand">展開</button><button class="ds-btn sm" type="button" data-act="edit">編輯</button></td></tr>
+      </tbody>
+    </table>
+    <div class="ds-row" style="margin-top:var(--ds-s3)">
+      <button class="ds-btn" id="btnBatch" type="button">批次結案…<span class="ds-btn-hint">第三級：逐列確認表</span></button>
+      <button class="ds-btn" id="btnFail" type="button">模擬寫入失敗</button>
+      <span class="ds-note">「標為已聯絡」是第一級：按了就生效，提示裡有「復原」。</span>
+    </div>
+  </section>
+
+  <div class="sc-grid">
+    <section class="ds-card">
+      <h2>輸入：照收、自動轉、標黃不擋</h2>
+      <div class="ds-field">
+        <label class="ds-label" for="fName">姓名（邊打邊跳候選，只露遮罩線索）</label>
+        <input class="ds-input" id="fName" autocomplete="off" placeholder="例：輸入「王」">
+        <ul class="ds-suggest ds-hidden" id="sug" role="listbox"></ul>
+        <span class="ds-note" id="nameSrc"></span>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="fDate">日期（西元自動轉民國；看不懂標黃但照樣存）</label>
+        <input class="ds-input" id="fDate" placeholder="例：2026/10/15 或 115.10.15">
+        <span id="dateMsg"></span>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="fKind">類別（下拉＋自填，自填的值變成新選項）</label>
+        <span class="ds-select"><select id="fKind"><option>電話關懷</option><option>家訪</option><option>陪同就醫</option><option value="__new">＋自己填一個…</option></select></span>
+        <input class="ds-input ds-hidden" id="fKindNew" placeholder="輸入新類別後按 Enter">
+        <span class="ds-note" id="kindMsg"></span>
+      </div>
+      <label class="ds-check"><input type="checkbox" class="ds-cb" checked> 也請主責加進同家戶</label>
+      <div class="ds-field" style="margin-top:var(--ds-s3)">
+        <label class="ds-label" for="fBig">全版大字填寫區</label>
+        <input class="ds-input big" id="fBig" placeholder="主畫面填寫用 20px／54px">
+      </div>
+    </section>
+
+    <section class="ds-card">
+      <h2>按鈕、篩選、狀態章</h2>
+      <div class="sc-demo">
+        <button class="ds-btn primary" type="button">儲存變更</button>
+        <button class="ds-btn" type="button">取消變更</button>
+        <button class="ds-btn sm" type="button">小按鈕</button>
+        <button class="ds-btn" type="button" disabled>停用</button>
+      </div>
+      <p class="sc-rule">主按鈕一畫面只有一個；按鈕一律膠囊、高 ≥ 44、框 2px。</p>
+      <div class="sc-demo ds-chips" id="chips">
+        <button class="ds-chip" type="button" aria-pressed="true">確定參加 2 戶</button>
+        <button class="ds-chip" type="button" aria-pressed="false">待認領 2 戶</button>
+        <button class="ds-chip" type="button" aria-pressed="false">需確認 2 戶</button>
+        <button class="ds-chip" type="button" aria-pressed="false">全部（含已取消）</button>
+      </div>
+      <div class="sc-demo">
+        <span class="ds-badge ok">完成</span><span class="ds-badge edit">待補</span><span class="ds-badge no">停止</span><span class="ds-badge pend">待處理</span><span class="ds-badge hold">暫緩</span>
+      </div>
+      <h3>區塊入口（與「全部」並存，記住上次）</h3>
+      <div class="ds-blks" id="blks">
+        <button class="ds-blk" type="button" data-blk="成員" aria-pressed="false"><b>成員</b><span>3 位・1 位不參加</span></button>
+        <button class="ds-blk" type="button" data-blk="交通" aria-pressed="false"><b>交通</b><span>無障礙計程車 12:20</span></button>
+        <button class="ds-blk" type="button" data-blk="餐食" aria-pressed="false"><b>餐食</b><span>2/3 已選</span></button>
+        <button class="ds-blk" type="button" data-blk="備註" aria-pressed="false"><b>重要備註</b><span>—</span></button>
+        <button class="ds-blk all" type="button" data-blk="全部" aria-pressed="true"><b>全部</b><span>四塊一起</span></button>
+      </div>
+      <p class="ds-note" id="blkMsg">目前：全部</p>
+    </section>
+  </div>
+
+  <section class="ds-card">
+    <h2>顏色</h2>
+    <p>
+      <span class="sc-sw"><i style="background:var(--ds-bg)"></i>底</span>
+      <span class="sc-sw"><i style="background:var(--ds-surface)"></i>面</span>
+      <span class="sc-sw"><i style="background:var(--ds-ink)"></i>墨</span>
+      <span class="sc-sw"><i style="background:var(--ds-body)"></i>內文</span>
+      <span class="sc-sw"><i style="background:var(--ds-muted)"></i>淡字</span>
+      <span class="sc-sw"><i style="background:var(--ds-primary)"></i>主按鈕（淺：深藍白字 4.79／深：亮藍墨字 8.04）</span>
+      <span class="sc-sw"><i style="background:var(--ds-sky)"></i>天藍：只做框線、光暈、選中邊</span>
+    </p>
+    <p>
+      <span class="sc-sw"><i style="background:var(--ds-coral)"></i>珊瑚</span>
+      <span class="sc-sw"><i style="background:var(--ds-sun)"></i>金黃</span>
+      <span class="sc-sw"><i style="background:var(--ds-mint)"></i>薄荷</span>
+      <span class="sc-sw"><i style="background:var(--ds-lav)"></i>薰衣草</span>
+      <span class="ds-note">裝飾色只做圖表、識別、插畫，不當按鈕底。</span>
+    </p>
+    <div class="ds-export sc-demo" style="background:var(--ds-bg)">
+      <b style="color:var(--ds-ink)">匯出區（.ds-export）</b>
+      <span class="ds-badge ok">完成</span><span class="ds-badge pend">待處理</span>
+      <span class="ds-note">切深色時這塊仍是淺色：PNG／LINE／Excel 一律固定淺色票。</span>
+    </div>
+  </section>
+
+  <section class="ds-card ds-read">
+    <h2>沒有 JavaScript 時</h2>
+    <p>本頁內容與元件外觀都寫在 HTML 與 CSS 裡，關掉 JavaScript 仍看得到全部樣式；可點的部分（篩選、浮動視窗、三級確認、自動轉換、提示）需要 JavaScript 才會動。
+    數值規格見同資料夾 <code>tokens.css</code>，規則與理念見技能的 <code>references/design-system.md</code>。</p>
+  </section>
+</main>
+
+<div class="ds-dock" id="dock" aria-label="收起的視窗"></div>
+<div class="ds-toasts" id="toasts" aria-live="polite"></div>
+<div class="ds-watermark">示範系統 v1.0.0 · abc1234 · 示範資料均為虛構</div>
+<footer class="sc-footer">本頁所有姓名、電話末四碼、主責與數字均為虛構的示範資料；離線示範，不連任何外部網站。</footer>
+
+<script>
+(function(){
+  "use strict";
+  var root=document.documentElement;
+  function $(s,c){return (c||document).querySelector(s)}
+  function $$(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))}
+  var store={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+  /* 深淺色與緊密版 */
+  $("#btnTheme").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme");
+    var dark=cur==="dark"||(!cur&&matchMedia("(prefers-color-scheme: dark)").matches);
+    root.setAttribute("data-theme",dark?"light":"dark");
+  });
+  $("#btnCompact").addEventListener("click",function(){
+    var on=root.classList.toggle("ds-compact");
+    this.setAttribute("aria-pressed",on?"true":"false");
+  });
+
+  /* 頁籤 */
+  $$(".ds-tab").forEach(function(t){t.addEventListener("click",function(){
+    $$(".ds-tab").forEach(function(x){x.setAttribute("aria-selected","false")});t.setAttribute("aria-selected","true");
+  })});
+
+  /* 提示：失敗不自動消失、成功 3 秒 */
+  function toast(kind,msg,undo){
+    var el=document.createElement("div");el.className="ds-toast "+kind;el.setAttribute("role",kind==="err"?"alert":"status");
+    var s=document.createElement("span");s.textContent=msg;el.appendChild(s);
+    var sp=document.createElement("span");sp.className="ds-sp";el.appendChild(sp);
+    if(undo){var u=document.createElement("button");u.className="ds-btn sm";u.type="button";u.textContent="復原";
+      u.addEventListener("click",function(){undo();el.remove();toast("ok","已復原")});el.appendChild(u)}
+    if(kind==="err"){var x=document.createElement("button");x.className="ds-win-x";x.type="button";x.title="關閉";x.textContent="✕";
+      x.addEventListener("click",function(){el.remove()});el.appendChild(x)}
+    else{setTimeout(function(){el.remove()},undo?6000:3000)}
+    $("#toasts").appendChild(el);
+  }
+
+  /* 數字卡＋只看待認領：篩選，但預設照樣顯示全部 */
+  var filter="all",onlyPend=false;
+  function applyFilter(){
+    $$("#list tbody tr[data-st]").forEach(function(tr){
+      var st=tr.getAttribute("data-st");
+      var show=(filter==="all"||filter===st)&&(!onlyPend||st==="pend");
+      tr.classList.toggle("ds-hidden",!show);
+      var nx=tr.nextElementSibling;if(nx&&nx.classList.contains("ds-expand"))nx.classList.toggle("ds-hidden",!show);
+    });
+  }
+  $$("#kpis .ds-kpi").forEach(function(k){k.addEventListener("click",function(){
+    $$("#kpis .ds-kpi").forEach(function(x){x.setAttribute("aria-pressed","false")});k.setAttribute("aria-pressed","true");
+    filter=k.getAttribute("data-filter");applyFilter();
+  })});
+  $("#btnOnlyPend").addEventListener("click",function(){onlyPend=!onlyPend;this.setAttribute("aria-pressed",onlyPend?"true":"false");applyFilter()});
+  $$("#chips .ds-chip").forEach(function(c){c.addEventListener("click",function(){
+    $$("#chips .ds-chip").forEach(function(x){x.setAttribute("aria-pressed","false")});c.setAttribute("aria-pressed","true");
+  })});
+  $("#btnQuiet").addEventListener("click",function(){
+    var h=$("#hero"),busy=h.classList.toggle("busy");
+    $("#heroN").textContent=busy?"3":"0";
+    h.querySelector("b").textContent=busy?"早安，今天有 3 件待處理":"早安，今天沒有待處理";
+    this.textContent=busy?"看安靜狀態":"看有待辦狀態";
+  });
+
+  /* 浮動視窗：可拖曳、不加遮罩、最多 4 個，第 5 個開時最早那個收到左下角 */
+  var MAX=4,wins=[],z=40,seq=0;
+  function front(w){wins.forEach(function(x){x.el.classList.remove("front")});w.el.classList.add("front");w.el.style.zIndex=++z}
+  function dockWin(w){
+    w.el.classList.add("ds-hidden");w.docked=true;
+    var b=document.createElement("button");b.type="button";b.textContent=w.title;
+    b.addEventListener("click",function(){b.remove();openExisting(w)});w.dockBtn=b;$("#dock").appendChild(b);
+  }
+  function visible(){return wins.filter(function(w){return !w.docked})}
+  function openExisting(w){
+    var v=visible();if(v.length>=MAX)dockWin(v[0]);
+    w.docked=false;w.el.classList.remove("ds-hidden");wins.splice(wins.indexOf(w),1);wins.push(w);front(w);
+  }
+  function closeWin(w){if(w.dockBtn)w.dockBtn.remove();w.el.remove();wins.splice(wins.indexOf(w),1)}
+  function openWin(title,size,anchor,build){
+    var v=visible();if(v.length>=MAX)dockWin(v[0]);
+    var el=document.createElement("div");el.className="ds-win"+(size?" "+size:"");el.setAttribute("role","dialog");el.setAttribute("aria-label",title);
+    var bar=document.createElement("div");bar.className="ds-win-bar";
+    var b=document.createElement("b");b.textContent=title;bar.appendChild(b);
+    var mn=document.createElement("button");mn.className="ds-win-x";mn.type="button";mn.title="收起";mn.textContent="—";bar.appendChild(mn);
+    var cx=document.createElement("button");cx.className="ds-win-x";cx.type="button";cx.title="關閉";cx.textContent="✕";bar.appendChild(cx);
+    var body=document.createElement("div");body.className="ds-win-body";
+    el.appendChild(bar);el.appendChild(body);document.body.appendChild(el);
+    var w={el:el,title:title,docked:false};wins.push(w);
+    build(body,el,w);
+    var r=anchor?anchor.getBoundingClientRect():{left:200,bottom:120};
+    var n=(seq++%4)*28;
+    el.style.left=Math.max(16,Math.min(window.innerWidth-el.offsetWidth-16,r.left-40+n))+"px";
+    el.style.top=Math.max(72,Math.min(window.innerHeight-el.offsetHeight-16,r.bottom+8+n))+"px";
+    front(w);
+    el.addEventListener("mousedown",function(){front(w)});
+    mn.addEventListener("click",function(){dockWin(w)});
+    cx.addEventListener("click",function(){closeWin(w)});
+    bar.addEventListener("mousedown",function(e){
+      if(e.target.closest("button"))return;
+      var sx=e.clientX-el.offsetLeft,sy=e.clientY-el.offsetTop;
+      function mv(ev){el.style.left=(ev.clientX-sx)+"px";el.style.top=Math.max(0,ev.clientY-sy)+"px"}
+      function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up)}
+      document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);e.preventDefault();
+    });
+    return w;
+  }
+
+  /* 第二級：多欄編輯先暫存，按儲存才寫入 */
+  function editWindow(tr,btn){
+    var name=tr.cells[0].textContent;
+    openWin("編輯："+name,"",btn,function(body,el,w){
+      body.innerHTML='<div class="ds-field"><label class="ds-label">聯絡電話（末四碼以外遮罩）</label><input class="ds-input" data-k="tel" value="09XX-XXX-'+tr.cells[3].textContent.slice(-4)+'"></div>'+
+        '<div class="ds-field"><label class="ds-label">備註</label><input class="ds-input" data-k="memo" value=""></div>'+
+        '<div class="ds-field"><label class="ds-label">交通</label><span class="ds-select"><select data-k="car"><option>自行前往</option><option>無障礙計程車</option><option>需接送</option></select></span></div>';
+      var foot=document.createElement("div");foot.className="ds-win-foot";
+      foot.innerHTML='<span class="ds-flag-text" data-unsaved></span><span class="ds-sp"></span>';
+      var cancel=document.createElement("button");cancel.className="ds-btn";cancel.type="button";cancel.textContent="取消變更";
+      var save=document.createElement("button");save.className="ds-btn primary";save.type="button";save.textContent="儲存";
+      foot.appendChild(cancel);foot.appendChild(save);el.appendChild(foot);
+      var orig={};$$("[data-k]",body).forEach(function(i){orig[i.getAttribute("data-k")]=i.value});
+      function dirty(){var n=0;$$("[data-k]",body).forEach(function(i){if(i.value!==orig[i.getAttribute("data-k")])n++});
+        $("[data-unsaved]",foot).textContent=n?"還有 "+n+" 處沒存":"";return n}
+      body.addEventListener("input",dirty);body.addEventListener("change",dirty);
+      cancel.addEventListener("click",function(){$$("[data-k]",body).forEach(function(i){i.value=orig[i.getAttribute("data-k")]});dirty()});
+      save.addEventListener("click",function(){var n=dirty();if(!n){toast("ok","沒有要存的變更");return}
+        $$("[data-k]",body).forEach(function(i){orig[i.getAttribute("data-k")]=i.value});dirty();toast("ok","已儲存 "+n+" 處（"+name+"）")});
+    });
+  }
+
+  /* 列上的動作 */
+  $("#list").addEventListener("click",function(e){
+    var btn=e.target.closest("button[data-act]");if(!btn)return;
+    var tr=btn.closest("tr"),act=btn.getAttribute("data-act");
+    if(act==="expand"){
+      var nx=tr.nextElementSibling;
+      $$("#list tr.ds-expand").forEach(function(x){if(x!==nx)x.remove()});
+      if(nx&&nx.classList.contains("ds-expand")){nx.remove();return}
+      var ex=document.createElement("tr");ex.className="ds-expand";
+      ex.innerHTML='<td colspan="5">最近一次聯絡：115/10/12 電話關懷・下次預計 115/10/20。（就地展開只開一列，主畫面位置不變）</td>';
+      tr.parentNode.insertBefore(ex,tr.nextSibling);
+    }else if(act==="edit"){editWindow(tr,btn)}
+    else if(act==="mark"){
+      var old=btn.textContent;btn.textContent="已聯絡 ✓";btn.disabled=true;
+      toast("ok","已標為已聯絡："+tr.cells[0].textContent,function(){btn.textContent=old;btn.disabled=false});
+    }else if(act==="claim"){
+      var b=tr.cells[1].querySelector(".ds-badge");b.className="ds-badge ok";b.textContent="完成";tr.cells[2].textContent="示範社工甲";
+      tr.classList.remove("ds-pending");tr.setAttribute("data-st","ok");btn.remove();
+      toast("ok","已認領，算進戶數");
+    }
+  });
+
+  /* 第三級：批量＝逐列確認表 */
+  $("#btnBatch").addEventListener("click",function(){
+    var btn=this;
+    openWin("批次結案：逐列確認","work",btn,function(body,el,w){
+      var rows=$$("#list tbody tr[data-st]").filter(function(tr){return tr.getAttribute("data-st")!=="pend"});
+      var h='<p class="ds-note">每一列都要勾才會寫入；沒勾的不動。這一步不可逆，所以逐列確認。</p><table class="ds-table"><thead><tr><th>確認</th><th>家戶</th><th>現在</th><th>改成</th></tr></thead><tbody>';
+      rows.forEach(function(tr,i){h+='<tr><td><input type="checkbox" class="ds-cb" data-i="'+i+'"></td><td>'+tr.cells[0].textContent+'</td><td>'+tr.cells[1].textContent+'</td><td><span class="ds-badge no">停止</span></td></tr>'});
+      body.innerHTML=h+'</tbody></table>';
+      var foot=document.createElement("div");foot.className="ds-win-foot";
+      var info=document.createElement("span");info.className="ds-note";info.textContent="已勾 0 列";
+      var sp=document.createElement("span");sp.className="ds-sp";
+      var go=document.createElement("button");go.className="ds-btn primary";go.type="button";go.textContent="寫入勾選的列";
+      foot.appendChild(info);foot.appendChild(sp);foot.appendChild(go);el.appendChild(foot);
+      body.addEventListener("change",function(){info.textContent="已勾 "+$$("input:checked",body).length+" 列"});
+      go.addEventListener("click",function(){var n=$$("input:checked",body).length;
+        if(!n){toast("err","沒有勾任何一列，所以什麼都沒寫入。");return}
+        toast("ok","已結案 "+n+" 列（示範：未真的改清單）");closeWin(w)});
+    });
+  });
+
+  $("#btnFail").addEventListener("click",function(){
+    toast("err","寫入失敗：共用資料夾目前無法寫入（示範）。資料還在畫面上沒有遺失，請稍後再按一次「儲存」。");
+  });
+
+  /* 打名字候選：姓名(編號)・主責・狀態；選定帶出整戶並標來源 */
+  var people=[["王○明","A0012","示範社工甲","在案","3 人：本人、母、弟"],["王○華","A0047","示範社工乙","結案","2 人：本人、父"],["陳○華","A0105","—","待認領","4 人"]];
+  var fName=$("#fName"),sug=$("#sug");
+  fName.addEventListener("input",function(){
+    var q=fName.value.trim();sug.innerHTML="";
+    var hits=q?people.filter(function(p){return p[0].indexOf(q)===0||p[1].indexOf(q)>=0}):[];
+    sug.classList.toggle("ds-hidden",!hits.length);
+    hits.forEach(function(p){var li=document.createElement("li");li.setAttribute("role","option");
+      li.innerHTML="<b>"+p[0]+"("+p[1]+")</b> <small>・主責 "+p[2]+"・"+p[3]+"</small>";
+      li.addEventListener("click",function(){fName.value=p[0];sug.classList.add("ds-hidden");
+        $("#nameSrc").textContent="已帶出整戶："+p[4]+"（來源：個案主檔）"});sug.appendChild(li)});
+  });
+
+  /* 日期：西元→民國、補 0；看不懂標黃「請確認」但照樣存 */
+  $("#fDate").addEventListener("change",function(){
+    var v=this.value.trim(),m=v.match(/^(\d{2,4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})日?$/),msg=$("#dateMsg");
+    this.classList.remove("ds-flag");msg.className="";msg.textContent="";
+    if(!v)return;
+    if(m){var y=+m[1];if(y>1911)y-=1911;var out=y+"/"+("0"+m[2]).slice(-2)+"/"+("0"+m[3]).slice(-2);
+      if(out!==v){this.value=out;msg.className="ds-converted";msg.textContent="已轉換（原輸入："+v+"）"}}
+    else{this.classList.add("ds-flag");msg.className="ds-flag-text";msg.textContent="請確認：看不懂這個日期，已照原樣存下"}
+  });
+
+  /* 下拉＋自填 */
+  var kind=$("#fKind"),kindNew=$("#fKindNew");
+  kind.addEventListener("change",function(){if(kind.value==="__new"){kindNew.classList.remove("ds-hidden");kindNew.focus()}});
+  kindNew.addEventListener("keydown",function(e){
+    if(e.key!=="Enter")return;var v=kindNew.value.trim();if(!v)return;
+    var o=document.createElement("option");o.textContent=v;kind.insertBefore(o,kind.lastElementChild);kind.value=v;
+    kindNew.value="";kindNew.classList.add("ds-hidden");$("#kindMsg").textContent="「"+v+"」已變成新選項，下次直接選。";
+  });
+
+  /* 區塊入口：記住上次 */
+  function pickBlk(name){$$("#blks .ds-blk").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-blk")===name?"true":"false")});
+    $("#blkMsg").textContent="目前："+name+"（下次打開會記得）"}
+  $$("#blks .ds-blk").forEach(function(b){b.addEventListener("click",function(){var n=b.getAttribute("data-blk");pickBlk(n);store.set("ds-showcase-blk",n)})});
+  var last=store.get("ds-showcase-blk");if(last)pickBlk(last);
+})();
+</script>
+</body>
+</html>

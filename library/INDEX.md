@@ -21,8 +21,9 @@
 
 | 我要做的事 | 用這個 |
 |---|---|
-| **要圖示、插畫、人物、標記、背景、UI 樣式（幾何活潑風，負責人選定的預設美術）** | `../assets/geo-playful-kit/`（先開 `showcase.html`、查 `manifest.json`） |
-| 決定配色、字級、間距、圓角、語意色 | `ui/F-UI-001_暖色設計token/tokens.css` |
+| **決定配色、字級、間距、圓角、語意色、元件尺寸（設計規格 v1，2026-10-15 核可，新專案一律用）** | `../references/design-system.md`＋`../assets/design-system/`（`tokens.css`、`components.css`、`showcase.html`） |
+| **要圖示、插畫、人物、標記、背景（幾何活潑風素材；數值不用它的 `ui/`）** | `../assets/geo-playful-kit/`（先開 `showcase.html`、查 `manifest.json`） |
+| 舊專案沿用的暖色 token（設計規格的前身，數值有出入以設計規格為準） | `ui/F-UI-001_暖色設計token/tokens.css` |
 | 要按鈕／卡片／表格／表單／狀態徽章／篩選 chip 的現成樣式 | `ui/F-UI-001_暖色設計token/app.css` |
 | 想先「看到」設計系統長什麼樣、或給使用者挑視覺 | `ui/F-UI-006_設計系統規格預覽/`（19 頁，瀏覽器直接開） |
 | 頁面多到要全域搜尋跳轉（Ctrl+K） | `components/F-UI-002_命令面板/` |
