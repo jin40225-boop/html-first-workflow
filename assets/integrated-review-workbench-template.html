@@ -212,8 +212,12 @@ const cards=()=>$$(".card[data-need='1']");
 const clean=()=>({trial:"comfortable",items:[]});
 const emptyReply=()=>({version:1,trials:[],cards:{}});
 let practice=load(PRACTICE_KEY,clean()),reply=load(REPLY_KEY,emptyReply());
-function load(key,fallback){try{return {...fallback,...JSON.parse(localStorage.getItem(key)||"{}")}}catch{return fallback}}
-function persist(key,value){localStorage.setItem(key,JSON.stringify(value))}
+// Claude 桌面版內建瀏覽器會把本機 HTML 當 data: 頁面顯示，localStorage 被禁用（2026-10-07 實際踩到：每題保存都失敗）。
+// 存不進去時改存在這個視窗的記憶體，並明講關掉會消失、答完要按複製回覆。
+const MEM={};let NO_STORE=false;
+try{localStorage.setItem(DOC_ID+":probe","1");localStorage.removeItem(DOC_ID+":probe")}catch{NO_STORE=true}
+function load(key,fallback){try{return {...fallback,...JSON.parse((NO_STORE?MEM[key]:localStorage.getItem(key))||"{}")}}catch{return fallback}}
+function persist(key,value){if(NO_STORE){MEM[key]=JSON.stringify(value);return}localStorage.setItem(key,JSON.stringify(value))}
 function say(t){$("#globalStatus").textContent=t}
 function show(view){
   $("#experience").classList.toggle("hidden",view!=="experience");$("#review").classList.toggle("hidden",view!=="review");
@@ -256,7 +260,7 @@ function saveCard(card){
   try{
     const next=JSON.parse(JSON.stringify(reply));
     next.cards[id].saved={...draft,savedAt:new Date().toISOString()};
-    persist(REPLY_KEY,next);reply=next;syncCard(card);say("本題已存入這個瀏覽器。");
+    persist(REPLY_KEY,next);reply=next;syncCard(card);say(NO_STORE?"本題已保存在這個視窗（此瀏覽器不允許存檔：關掉頁面會消失，答完請按「複製回覆給 AI」）。":"本題已存入這個瀏覽器。");
   }catch(e){say("保存失敗，草稿仍留在畫面："+(e.message||e))}
 }
 function exportObject(){
@@ -336,6 +340,7 @@ document.addEventListener("change",e=>{if(e.target.matches(".card input[type=rad
 practice.items=Array.isArray(practice.items)?practice.items:[];reply.cards=reply.cards||{};reply.trials=Array.isArray(reply.trials)?reply.trials:[];
 document.body.classList.toggle("density-compact",practice.trial==="compact");$("#trialLabel").textContent=practice.trial==="compact"?"緊湊間距":"舒適間距";
 cards().forEach(syncCard);renderItems();renderIndex();show("experience");
+if(NO_STORE){say("⚠ 這個瀏覽器視窗不允許網頁存資料：保存只留在這個視窗，關掉就消失。答完請按「複製回覆給 AI」；或改用 Edge／Chrome 開這個檔案。");$("#copyStatus").textContent="⚠ 此視窗無法存到瀏覽器：答完務必按「複製回覆給 AI」或「顯示回覆文字」。"}
 })();
 </script>
 </body>
