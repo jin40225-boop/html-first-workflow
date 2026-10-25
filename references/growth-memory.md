@@ -181,3 +181,6 @@ Keep this file practical. Do not store private secrets, temporary bugs, or one-o
 
 ### 2026-10-12 - 決策台答案只在 localStorage 會丟
 - Preference: 2026-10-12 負責人在 AI 幫他開的內建瀏覽器窗格作答整合藍圖 5 題，答案只存在那個分頁的 localStorage；另一個窗口掃 Chrome／Edge 找不到，大家以為遺失，最後從窗格 javascript 傾印救回。規則：①決策台要有一鍵存到專案資料夾的路（下載檔或宿主寫檔），不能只靠 localStorage；②開給使用者作答後，由 AI 主動收回答案（讀窗格或請他按存檔），不要等他貼；③在哪個瀏覽器開的要講清楚，答完前不要關那個分頁、不要清 localStorage（AI 自己測試時也別在他要作答的分頁 localStorage.clear）。
+
+### 2026-10-25 - 操作型課程做成互動教學：學生公版要在真平台實跑
+- Preference: 社工初級 AI 課互動教學（F-UI-034）：負責人要的是學生照步驟貼上真的能跑，不是畫面像。模擬器 85 步全綠，照公版在真 Apps Script 從零做卻發現文字雲報錯（網頁應用程式裡 getActiveSpreadsheet 為 null，改 openById）、授權出現時機與選項名稱都和模擬不同。做法已收成 references/course-tutorial.md 與 assets/course-tutorial-template.html（第六之三節）；學生公版寫死在 HTML、模擬畫面讀同一份；真平台實跑並雜湊比對；處理課程、講義、教講事宜時主動一句話提醒有這個做法。
