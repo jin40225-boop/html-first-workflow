@@ -184,3 +184,6 @@ Keep this file practical. Do not store private secrets, temporary bugs, or one-o
 
 ### 2026-10-25 - 操作型課程做成互動教學：學生公版要在真平台實跑
 - Preference: 社工初級 AI 課互動教學（F-UI-034）：負責人要的是學生照步驟貼上真的能跑，不是畫面像。模擬器 85 步全綠，照公版在真 Apps Script 從零做卻發現文字雲報錯（網頁應用程式裡 getActiveSpreadsheet 為 null，改 openById）、授權出現時機與選項名稱都和模擬不同。做法已收成 references/course-tutorial.md 與 assets/course-tutorial-template.html（第六之三節）；學生公版寫死在 HTML、模擬畫面讀同一份；真平台實跑並雜湊比對；處理課程、講義、教講事宜時主動一句話提醒有這個做法。
+
+### 2026-10-27 - 課程互動教學 v2：版面與節奏由負責人回饋定案，冷測三輪
+- Preference: F-UI-034 v2：負責人看完 v1 說聊天室、學員手機、書籤列都不需要，字幕在下排讓眼睛無法聚焦，程式碼不該塞在每頁底下，重點一閃而過。v2 改成示範畫面佔滿、浮動說明卡避開操作處、零件卡跟著步驟出現、⚠一定要統一標註、每章大字介紹＋本章小結（播放停在小結）。先把回饋寫成可驗規格與逐字稿重點表，再請另一個工作階段冷測，三輪後全過。抓到的坑：示範代按寫系統剪貼簿、整塊重畫重播淡入讓頁面永遠半透明、隱藏窗格暫停 rAF/ResizeObserver。已寫進 references/course-tutorial.md 與骨架 v2（K-VIS-005、K-VER-026、K-RESIL-019、K-OPS-034）。

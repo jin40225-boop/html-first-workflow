@@ -6,22 +6,22 @@
 <title>{{課名}}｜互動教學</title>
 <!--
   ═══════════════════════════════════════════════════════════════
-  軌道 A 的變體｜課程互動教學　骨架（純佔位，不含任何專案內容）
+  軌道 A 的變體｜課程互動教學　骨架 v2（純佔位，不含任何專案內容）
   寫作指引：references/course-tutorial.md
-  完整實作（11 章 85 步、多個擬真平台）：軟體資料庫 F-UI-034；引擎源頭 F-UI-032
+  完整實作（11 章 107 步）：軟體資料庫 F-UI-034；版面規範 K-VIS-005；引擎源頭 F-UI-032
 
   ★ 已經接好、可以直接沿用的技法：
-      · 上方章節分頁＋下方步驟節點，點任何一步直達（FAST 重播保證狀態正確）
-      · 播放模式照課程順序走；停留時間依字幕長度算；可關自動換頁
-      · →／右鍵兩段式：第一下讓這步播完，第二下下一步；← 上一步；空白鍵播放／暫停
-      · 觀眾一點畫面就切「自由操作」，導覽與自由操作共用同一組 ACT 動作
-      · 字幕＋「常見錯誤」小卡；網址 #s=N 直達第 N 步（講義、投影片可以直接連）
-      · 學生公版：程式碼／公式寫死在 HTML，一鍵複製；模擬畫面裡貼上的就是這一份
-      · 淡浮水印＋角落署名＋頁尾聲明，標明講師是作者
-  ★ 必改：<title>、.brand 課名與講師署名、CH 章節、STEPS 腳本、render() 的擬真畫面、
-    #kit 裡的學生公版、頁尾聲明。
-  ★ 鐵律：學生要貼的東西交付前要在真平台從零實跑一次（K-VER-025）；
-    擬真畫面的按鈕與選項文字照真平台抄；示範資料一律虛構。
+      · 章節分頁＋步驟節點直達（FAST 重播保證狀態正確）；#s=N 深連結
+      · 每章自動插入「章節介紹」（大字：章名、AI 知能、用途、這章做什麼）與「本章小結」（可點回任一步、下一章）
+      · 播放模式照課程順序走，停在每章小結；→／右鍵兩段式；← 上一步；空白鍵播放／暫停
+      · 浮動半透明說明卡：避開這一步碰過的地方，沒擋到就不動；不會掉出視窗
+      · 零件卡：用到的那一步出現「🧩 這一步的零件」可複製；全部零件在獨立的「範本與程式碼」頁，兩邊同一份
+      · 「⚠ 一定要」統一標註 must()：放大目標、橘框、停留夠久
+      · 觀眾一點畫面就切「自由操作」；只有本人按的「複製」才寫進系統剪貼簿
+      · 淡浮水印＋角落署名＋頁尾聲明
+  ★ 必改：<title>、.brand 課名與講師署名、CH／CHINFO 章節、STEPS 腳本、PARTS 對應、
+    render() 的擬真畫面、#kit 的學生公版、頁尾聲明。
+  ★ 鐵律：學生要貼的東西交付前在真平台從零實跑（K-VER-025）；擬真文字照真平台抄；資料一律虛構。
   ═══════════════════════════════════════════════════════════════
 -->
 <style>
@@ -32,8 +32,8 @@
   --ink:#2D251A; --body:#50412E; --muted:#7A6953;
   --line:#ECDFCA; --line2:#E1D2B8;
   --primary:#1576C0; --on-primary:#FFFFFF; --sky:#3DA5F5; --ring:rgba(61,165,245,.32);
-  --ok:#2E7D4F; --warn:#B8650A;
-  --cap-h:136px;
+  --sun:#FFC24B; --must:#E8572A; --ok:#2E7D4F; --warn:#B8650A;
+  --top-h:150px;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){
@@ -48,61 +48,81 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--body);font:18px/1.6 var(--font)}
+html.js body:not(.kitview){overflow:hidden}
 button{font:inherit;cursor:pointer}
 .btn{min-height:44px;padding:0 20px;border-radius:999px;border:2px solid var(--line2);background:var(--surface);color:var(--ink);font-weight:700}
 .btn.pri{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
 .btn:focus-visible,.chip:focus-visible,.node:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 
-/* 頂部 */
-.top{display:flex;align-items:center;gap:12px;padding:10px 22px;background:var(--surface);border-bottom:2px solid var(--line);flex-wrap:wrap}
-.brand b{font-size:22px;color:var(--ink)} .brand small{display:block;font-size:14px;color:var(--muted)}
+/* 頂部、章節、步驟列＋播放控制 */
+.top{display:flex;align-items:center;gap:12px;padding:8px 22px;background:var(--surface);border-bottom:2px solid var(--line);flex-wrap:wrap}
+.brand b{font-size:21px;color:var(--ink)} .brand small{display:block;font-size:14px;color:var(--muted)}
 .top .sp{flex:1}
-.chaps{display:flex;gap:8px;padding:10px 22px 0;flex-wrap:wrap}
+.chaps{display:flex;gap:8px;padding:8px 22px 0;flex-wrap:wrap}
 .chip{min-height:36px;padding:0 16px;border-radius:999px;border:2px solid var(--line2);background:var(--surface);color:var(--ink);font-size:16px;font-weight:700}
-.chip.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
-.nodes{display:flex;gap:6px;padding:10px 22px;flex-wrap:wrap}
-.node{width:36px;height:36px;border-radius:999px;border:2px solid var(--line2);background:var(--surface);color:var(--muted);font-size:14px;font-weight:700}
-.node.done{background:var(--soft);color:var(--ink)} .node.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.navrow{display:flex;align-items:center;gap:10px;padding:8px 22px;border-bottom:2px solid var(--line)}
+.nodes{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto}
+.node{flex:none;min-height:36px;padding:0 12px;border-radius:999px;border:2px solid var(--line2);background:var(--surface);color:var(--muted);font-size:14px;font-weight:700}
+.node.done{color:var(--ok)} .node.on{border-color:var(--sky);box-shadow:0 0 0 3px var(--ring);color:var(--ink)}
+.node.k{border-style:dashed;background:var(--soft)}
+.ctl{flex:none;display:flex;gap:6px}
 
-/* 舞台：擬真畫面放這裡 */
-.stage{position:relative;margin:0 22px;min-height:460px;background:var(--surface);border:2px solid var(--line);border-radius:18px;overflow:hidden;padding-bottom:var(--cap-h)}
-.screen{padding:24px}
+/* 舞台：只放示範畫面 */
+.stage{position:relative;margin:10px 16px;height:calc(100vh - var(--top-h) - 20px);min-height:420px;background:var(--surface);border:2px solid var(--line);border-radius:18px;overflow:hidden}
+.screen{padding:24px;height:100%;overflow:auto}
 .screen h2{margin:0 0 12px;font-size:22px;color:var(--ink)}
 .editor{width:100%;min-height:180px;font:15px/1.5 var(--mono);border:2px solid var(--line2);border-radius:14px;padding:12px;background:var(--soft);color:var(--ink);white-space:pre-wrap}
 .status{margin-top:12px;font-weight:700} .status.ok{color:var(--ok)} .status.no{color:var(--warn)}
-.cursor{position:absolute;left:40px;top:40px;width:22px;height:22px;pointer-events:none;z-index:30;transition:left .45s,top .45s}
-.cursor::before{content:"";position:absolute;inset:0;background:var(--ink);clip-path:polygon(0 0,0 100%,30% 72%,52% 100%,64% 92%,44% 66%,80% 66%)}
-.cursor.click::after{content:"";position:absolute;left:-10px;top:-10px;width:40px;height:40px;border-radius:50%;border:3px solid var(--sky);animation:ping .4s}
-@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(1.2);opacity:0}}
-.spot{position:absolute;z-index:25;border:3px solid var(--sky);border-radius:14px;box-shadow:0 0 0 6px var(--ring);pointer-events:none;display:none}
-.spot span{position:absolute;left:0;top:-34px;white-space:nowrap;background:var(--primary);color:var(--on-primary);font-size:15px;font-weight:700;padding:2px 12px;border-radius:999px}
-.tipnote{position:absolute;left:16px;bottom:calc(var(--cap-h) + 12px);max-width:380px;z-index:20;background:var(--soft);border:2px solid var(--line2);border-radius:16px;padding:10px 14px;font-size:15px;display:none}
-.tipnote b{color:var(--warn)}
+.ov{position:absolute;inset:0;z-index:20;display:none;background:var(--bg);padding:34px 56px;overflow:auto}
+.ov.on{display:block}
+.ov .cno{display:inline-block;background:var(--sun);color:#2D251A;font-weight:800;font-size:22px;border-radius:999px;padding:4px 18px}
+.ov h2{font-size:48px;line-height:1.2;margin:14px 0 18px;color:var(--ink)}
+.ov .crow{display:flex;gap:18px;font-size:24px;margin:0 0 12px} .ov .crow b{flex:none;width:140px;color:var(--ink)}
+.ov .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ov .tags span{border:2px solid var(--line2);border-radius:999px;padding:2px 14px;background:var(--surface);font-weight:700}
+.ov .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.ov .sj{min-height:52px;text-align:left;padding:8px 16px;border-radius:16px;border:2px solid var(--line2);background:var(--surface);color:var(--ink);font-size:18px;font-weight:700}
+.ov .snext{display:flex;gap:12px;margin-top:20px}
 
-/* 字幕列 */
-.cap{position:absolute;left:0;right:0;bottom:0;height:var(--cap-h);z-index:28;background:var(--surface);border-top:2px solid var(--line);display:flex;gap:16px;align-items:center;padding:12px 18px}
-.cap .t{flex:1;font-size:21px;color:var(--ink);line-height:1.5}
-.cap .fn{display:block;font-size:14px;color:var(--muted);font-weight:700}
-.cap .ctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.toast{position:fixed;right:22px;top:80px;z-index:50;background:var(--ink);color:var(--surface);padding:6px 16px;border-radius:999px;font-size:15px;opacity:0;transition:opacity .2s}
+/* 游標、聚光燈、一定要 */
+.cursor{position:fixed;left:0;top:0;width:22px;height:22px;pointer-events:none;z-index:90;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+.cursor::before{content:"";position:absolute;inset:0;background:var(--ink);clip-path:polygon(0 0,0 100%,30% 72%,52% 100%,64% 92%,44% 66%,80% 66%)}
+.spot{position:fixed;z-index:80;border:4px solid var(--sun);border-radius:14px;box-shadow:0 0 0 9999px rgba(30,22,14,.34);pointer-events:none;display:none;transition:all .45s}
+.spot.must{border-color:var(--must);box-shadow:0 0 0 9999px rgba(30,22,14,.46),0 0 30px rgba(232,87,42,.9)}
+.spot span{position:absolute;left:-4px;top:-38px;white-space:nowrap;background:var(--sun);color:#2D251A;font-size:17px;font-weight:800;padding:3px 12px;border-radius:10px}
+.spot.must span{background:var(--must);color:#fff}
+.zoomfx{transform:scale(1.22);transition:transform .35s;position:relative;z-index:6}
+
+/* 浮動說明卡 */
+.capcard{position:fixed;z-index:85;width:440px;max-height:calc(100vh - 180px);overflow:auto;background:rgba(37,30,22,.86);color:#FFF8EC;border-radius:18px;padding:12px 16px 14px;box-shadow:0 14px 34px rgba(0,0,0,.28);transition:left .45s,top .45s}
+.capcard .k{font-size:15px;font-weight:800;color:var(--sun)}
+.capcard .t{font-size:20px;font-weight:700;line-height:1.55;margin-top:4px}
+.capcard .must{display:none;margin-top:8px;background:var(--must);color:#fff;font-weight:800;border-radius:12px;padding:6px 12px}
+.capcard.hasmust .must{display:block}
+.capcard .tip:not(:empty){margin-top:8px;border-left:4px solid var(--sun);padding:4px 10px;font-size:16px;color:#FFE9A8}
+.capcard .pt{margin-top:8px;background:rgba(255,255,255,.08);border-radius:12px;padding:8px 10px;display:flex;gap:8px;align-items:center}
+.capcard .pt b{flex:1;font-size:16px}
+.capcard .pt button{min-height:36px;border:0;border-radius:999px;padding:0 14px;font-weight:800;background:var(--primary);color:#fff}
+.toast{position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:95;background:var(--ink);color:var(--surface);padding:6px 16px;border-radius:999px;font-size:15px;opacity:0;transition:opacity .2s}
 .toast.on{opacity:1}
 
-/* 浮水印與署名：淡、不擋按鈕 */
-.wm{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.045;background-repeat:repeat}
-.wmbadge{position:fixed;left:12px;bottom:10px;z-index:61;font-size:14px;color:var(--muted);pointer-events:none}
-
-/* 學生公版 */
-.kit{margin:22px;padding:20px;background:var(--surface);border:2px solid var(--line);border-radius:18px}
-.kit h2{margin:0 0 4px;color:var(--ink)} .kit .k{border-top:2px solid var(--line);padding:14px 0}
+/* 範本與講義：獨立一頁 */
+html.js .kitpage{display:none}
+body.kitview .kitpage{display:block}
+body.kitview .stage,body.kitview .chaps,body.kitview .navrow,body.kitview .capcard{display:none}
+.kitpage{padding:0 22px 40px}
+.kpbar{position:sticky;top:0;z-index:5;display:flex;gap:14px;align-items:center;padding:10px 0;background:var(--bg);border-bottom:2px solid var(--line)}
+.kit .k{border-top:2px solid var(--line);padding:14px 0}
 .kit .k h3{margin:0;font-size:20px;color:var(--ink)} .kit .where{font-size:15px;color:var(--muted)}
 .kit pre{margin:8px 0;max-height:260px;overflow:auto;background:var(--soft);border:2px solid var(--line2);border-radius:14px;padding:12px;font:15px/1.5 var(--mono);color:var(--ink);white-space:pre-wrap}
-.outline{margin:0 22px 22px;font-size:16px} .outline li{margin:2px 0}
-footer{margin:0 22px 40px;font-size:14px;color:var(--muted)}
-@media (max-width:760px){ .cap{flex-direction:column;align-items:stretch} :root{--cap-h:190px} }
-@media print{
-  .chaps,.nodes,.stage,.top .btn,.toast,.wm{display:none!important}
-  .kit pre{max-height:none} body{background:#fff;color:#000}
-}
+footer{margin-top:24px;font-size:14px;color:var(--muted)}
+
+/* 浮水印與署名：淡、不擋按鈕 */
+.wm{position:fixed;inset:0;pointer-events:none;z-index:99;opacity:.045;background-repeat:repeat}
+.wmbadge{position:fixed;left:14px;bottom:8px;z-index:98;font-size:14px;color:var(--muted);pointer-events:none}
+@media (max-width:760px){.capcard{width:calc(100vw - 24px)} .ctl .opt{display:none}}
+@media print{html.js body{overflow:visible} .kitpage{display:block!important} .chaps,.navrow,.stage,.capcard,.toast,.wm,.kpbar{display:none!important} .kit pre{max-height:none}}
 </style>
 </head>
 <body>
@@ -113,7 +133,15 @@ footer{margin:0 22px 40px;font-size:14px;color:var(--muted)}
   <button class="btn" type="button" data-act="theme" aria-label="切換深淺色">🌓</button>
 </header>
 <nav class="chaps" id="chaps" aria-label="章節"></nav>
-<nav class="nodes" id="nodes" aria-label="步驟"></nav>
+<div class="navrow">
+  <nav class="nodes" id="nodes" aria-label="本章步驟"></nav>
+  <div class="ctl">
+    <button class="btn" type="button" data-act="prev" aria-label="上一步">⏮</button>
+    <button class="btn pri" type="button" data-act="play" id="playBtn">▶ 播放</button>
+    <button class="btn" type="button" data-act="next" aria-label="加速／下一步（→ 或右鍵）">⏭</button>
+    <button class="btn opt" type="button" data-act="auto" id="autoBtn">自動換頁：開</button>
+  </div>
+</div>
 
 <main class="stage" id="stage">
   <div class="screen" id="screen">
@@ -121,230 +149,217 @@ footer{margin:0 22px 40px;font-size:14px;color:var(--muted)}
     <h2>{{第一個擬真畫面的標題}}</h2>
     <p>{{這堂課的第一步說明}}</p>
   </div>
-  <div class="cursor" id="cursor" aria-hidden="true"></div>
-  <div class="spot" id="spot" aria-hidden="true"><span></span></div>
-  <div class="tipnote" id="tipnote" role="note"></div>
-  <div class="cap">
-    <div class="t" id="capT"><span class="fn" id="capFn">第 1 步</span>{{第一步字幕}}</div>
-    <div class="ctl">
-      <button class="btn" type="button" data-act="prev" aria-label="上一步">◀</button>
-      <button class="btn pri" type="button" data-act="play" id="playBtn">▶ 播放</button>
-      <button class="btn" type="button" data-act="next" aria-label="下一步（→ 或右鍵）">▶▶</button>
-      <button class="btn" type="button" data-act="auto" id="autoBtn">自動換頁：開</button>
-    </div>
-  </div>
+  <div class="ov" id="ovChap"></div>
 </main>
+<div class="capcard" id="capcard" role="region" aria-label="講解">
+  <div class="k" id="capK">第 1 步</div>
+  <div class="t" id="capT">{{第一步字幕}}</div>
+  <div class="must" id="capMust"></div>
+  <div class="tip" id="capTip"></div>
+  <div id="capParts"></div>
+</div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+<div class="spot" id="spot" aria-hidden="true"><span></span></div>
 <div class="toast" id="toast" role="status"></div>
 
-<section class="kit" id="kit">
-  <h2>📋 範本與程式碼</h2>
-  <p class="where">照步驟一段一段貼上就能用。每段右上角「複製」一次拿全部。</p>
-  <div class="k">
-    <h3>① {{範本一名稱}}</h3>
-    <div class="where">貼到：{{貼到哪裡、要先清空什麼、哪一行要換成自己的值}}</div>
+<div class="kitpage" id="kitpage">
+  <div class="kpbar"><button class="btn pri" type="button" data-act="closekit">← 回到教學</button><b>📋 範本與程式碼・課程講義</b></div>
+  <section class="kit" id="kit">
+    <p class="where">照步驟一段一段貼上就能用。教學播放到用得到的那一步，說明卡也會出現同一份。</p>
+    <div class="k">
+      <h3>① {{範本一名稱}}</h3>
+      <div class="where">貼到：{{貼到哪裡、要先清空什麼、哪一行要換成自己的值}}</div>
 <pre id="kit-a">// {{學生要貼的程式碼或公式，原文寫死在這裡}}
 // 交付前要在真平台從零照步驟跑一次
 const MY_VALUE = '貼上你的值';
 </pre>
-    <button class="btn" type="button" data-act="copy" data-src="kit-a">複製</button>
-  </div>
-</section>
-
-<section class="outline">
-  <h2>怎麼看這份教學</h2>
-  <ul>
-    <li>上方是章節，下方一排數字是步驟；點哪一步就直接跳到那一步，畫面會自動準備好前面的狀態。</li>
-    <li>按「▶ 播放」會照上課的順序一步一步自動示範；想停在某一步慢慢看，就按暫停或把自動換頁關掉。</li>
-    <li>鍵盤 → 或滑鼠右鍵：這一步還在動就先讓它做完，再按一次到下一步；← 回上一步；空白鍵播放／暫停。</li>
-    <li>任何時候直接點畫面上的按鈕，就換成自己操作；點下方步驟數字可以回到示範。</li>
-    <li>要自己做的時候，到「範本與程式碼」按複製，照字幕說的位置貼上；標著「換成你的」的地方記得換。</li>
-  </ul>
-  <h2>課程大綱</h2>
-  <ol id="outline"><li>{{大綱會由 STEPS 自動產生；JS 沒跑時保留這一行}}</li></ol>
-</section>
-
-<footer>本教材內容與畫面設計為 {{講師名}} 之智慧財產；未經授權，請勿轉載、改作或商業使用。畫面中的名稱與資料皆為示範用虛構內容。</footer>
+      <button class="btn" type="button" data-act="copy" data-src="kit-a">複製</button>
+    </div>
+  </section>
+  <section>
+    <h2>怎麼看這份教學</h2>
+    <ul>
+      <li>上方是章節，下面一排是本章步驟；點哪一步就直接跳到那一步，畫面會自動準備好前面的狀態。</li>
+      <li>每章第一頁是章節介紹，最後一頁是本章小結；小結可以點回任何一步重看，按「下一章」繼續。</li>
+      <li>按「▶ 播放」會照上課順序示範，播到本章小結會停下來等你。</li>
+      <li>鍵盤 → 或滑鼠右鍵：這一步還在動就先讓它做完，再按一次到下一步；← 回上一步；空白鍵播放／暫停。</li>
+      <li>任何時候直接點畫面上的按鈕，就換成自己操作；點步驟可以回到示範。</li>
+      <li>用得到程式碼的那一步，說明卡會出現「🧩 零件」，按複製再照畫面貼上；標著「換成你的」的地方記得換。</li>
+    </ul>
+    <h2>課程大綱</h2>
+    <ol id="outline"><li>{{大綱會由 STEPS 自動產生；JS 沒跑時保留這一行}}</li></ol>
+  </section>
+  <footer>本教材內容與畫面設計為 {{講師名}} 之智慧財產；未經授權，請勿轉載、改作或商業使用。畫面中的名稱與資料皆為示範用虛構內容。</footer>
+</div>
 <div class="wm" id="wm" aria-hidden="true"></div>
 <div class="wmbadge">© {{講師名}}</div>
 
 <script>
 'use strict';
+document.documentElement.classList.add('js');
+const $ = s => document.querySelector(s);
 /* ── 內容：換課只改這一區 ───────────────────────────────── */
 const CH = ['{{第一章}}', '{{第二章}}', '收尾'];
-const CODE_A = document.getElementById('kit-a').textContent;  // 模擬畫面貼的就是公版這一份
+const CHINFO = {   // 章節介紹的大字內容：[AI 知能, 用途]；收尾章不需要
+  0: ['{{這章學的 AI 知能}}', '{{學了可以用在哪裡}}'],
+  1: ['{{這章學的 AI 知能}}', '{{學了可以用在哪裡}}']
+};
+const CODE_A = $('#kit-a').textContent;           // 模擬畫面貼的、說明卡複製的，都是這一份
+const PARTS = { '貼上範本': ['kit-a'] };            // 步驟名 → 這一步的零件（#kit 裡 pre 的 id）
 
 const S = {};
 function seed() { Object.assign(S, { open: false, code: '', saved: false, ran: false }); }
 
 const STEPS = [
-  { ch: 0, fn: '打開編輯器', t: '{{第一步字幕：要點哪裡、為什麼}}', tip: '',
+  { ch: 0, fn: '打開編輯器', t: '{{字幕：要點哪裡、為什麼}}', tip: '',
     run: async () => { await tap('open'); } },
-  { ch: 0, fn: '貼上範本', t: '{{第二步字幕：把範本①整段貼進去}}', tip: '{{最常卡在哪：例如沒先清空原本的內容}}',
-    run: async () => { await spot('editor', '貼到這裡'); await typeIn(v => { S.code = v; }, CODE_A); unspot(); } },
-  { ch: 1, fn: '儲存並執行', t: '{{第三步字幕：先存檔再執行}}', tip: '{{常見錯誤：只按執行沒有儲存}}',
-    run: async () => { await tap('save'); await tap('run'); } },
-  { ch: 2, fn: '收尾', t: '{{收尾字幕：今天做了什麼、回家怎麼用範本}}', tip: '',
-    run: async () => { await spot('editor', '{{收尾提示：這份範本在頁面下方「範本與程式碼」}}'); } },
+  { ch: 0, fn: '貼上範本', t: '{{字幕：把範本①整段貼進去}}', tip: '{{最常卡在哪}}',
+    run: async () => { await must('editor', '貼上前先清空', 1600); await typeIn(v => { S.code = v; }, CODE_A); } },
+  { ch: 1, fn: '儲存並執行', t: '{{字幕：先存檔再執行}}', tip: '{{常見錯誤：只按執行沒有儲存}}',
+    run: async () => { await must('save', '按儲存', 2000); await tap('save'); await tap('run'); await spot('status', '執行完畢'); } },
+  { ch: 2, fn: '下課', t: '{{收尾字幕：今天做了什麼、回家怎麼用範本}}', tip: '',
+    run: async () => { await spot('editor', '範本都在上方「📋 範本與程式碼」'); } },
 ];
 
 /* ── 擬真畫面：依 S 畫出來（導覽與自由操作共用） ───────────── */
 function render() {
-  const el = document.getElementById('screen');
-  if (!S.open) {
-    el.innerHTML = '<h2>{{平台首頁}}</h2><button class="btn pri" type="button" data-t="open" data-act="open">{{開啟編輯器}}</button>';
-    return;
-  }
-  el.innerHTML = '<h2>{{編輯器}}</h2>'
-    + '<div class="editor" data-t="editor"></div>'
-    + '<p><button class="btn" type="button" data-t="save" data-act="save">儲存</button> '
-    + '<button class="btn pri" type="button" data-t="run" data-act="run">執行</button></p>'
-    + '<div class="status ' + (S.ran ? (S.saved ? 'ok' : 'no') : '') + '">'
-    + (S.ran ? (S.saved ? '執行完畢' : '還沒儲存，執行的是舊版本') : '') + '</div>';
+  const el = $('#screen');
+  if (!S.open) { el.innerHTML = '<h2>{{平台首頁}}</h2><button class="btn pri" type="button" data-t="open" data-act="open">{{開啟編輯器}}</button>'; return; }
+  el.innerHTML = '<h2>{{編輯器}}</h2><div class="editor" data-t="editor"></div>'
+    + '<p><button class="btn" type="button" data-t="save" data-act="save">💾 儲存</button> <button class="btn pri" type="button" data-t="run" data-act="run">▶ 執行</button></p>'
+    + '<div class="status ' + (S.ran ? (S.saved ? 'ok' : 'no') : '') + '" data-t="status">' + (S.ran ? (S.saved ? '執行完畢' : '還沒儲存，執行的是舊版本') : '') + '</div>';
   el.querySelector('.editor').textContent = S.code;
 }
 
 /* ── 動作：真點擊與導覽都走這裡 ─────────────────────────── */
 const ACT = {
-  open: () => { S.open = true; },
-  save: () => { S.saved = S.code.length > 0; },
-  run: () => { S.ran = true; },
-  prev: () => goto(Math.max(0, cur - 1)),
-  next: () => next(),
-  play: () => { playing = !playing; syncCtl(); if (playing) goto(cur); },
+  open: () => { S.open = true; }, save: () => { S.saved = S.code.length > 0; }, run: () => { S.ran = true; },
+  prev: () => goto(Math.max(0, cur - 1)), next: () => next(),
+  play: () => { playing = !playing; syncCtl(); if (playing) goto(lastDone === cur ? Math.min(cur + 1, STEPS.length - 1) : cur); },
   auto: () => { auto = !auto; syncCtl(); },
-  theme: () => {
-    const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    r.dataset.theme = dark ? 'light' : 'dark';
-  },
-  openkit: () => document.getElementById('kit').scrollIntoView({ behavior: 'smooth' }),
-  copy: el => {
-    const txt = document.getElementById(el.dataset.src).textContent;
-    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
-      .then(() => toast('已複製'), () => toast('複製失敗：請手動選取後 Ctrl+C'));
-  },
+  theme: () => { const r = document.documentElement, dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; },
+  openkit: () => { playing = false; syncCtl(); unspot(); document.body.classList.add('kitview'); scrollTo(0, 0); },
+  closekit: () => { document.body.classList.remove('kitview'); placeCard(true); },
+  copy: el => copyOut($('#' + el.dataset.src).textContent),
+  jump: el => { playing = false; syncCtl(); goto(+el.dataset.i); },
+  nextch: el => { playing = true; syncCtl(); goto(+el.dataset.i); },
 };
-const UI_ACTS = new Set(['prev', 'next', 'play', 'auto', 'theme', 'openkit', 'copy']);
+const UI_ACTS = new Set(['prev', 'next', 'play', 'auto', 'theme', 'openkit', 'closekit', 'copy', 'jump', 'nextch']);
+/* 只有本人親手按「複製」才寫進系統剪貼簿；示範代按不碰使用者的剪貼簿（K-OPS-034） */
+let USER = false;
+function copyOut(txt) { if (!USER) return; (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => toast('已複製'), () => toast('複製失敗：請手動選取後 Ctrl+C')); }
+
+/* ── 章節介紹與本章小結：執行時自動插入；播放到小結會停 ─────── */
+for (let c = CH.length - 2; c >= 0; c--) {
+  const first = STEPS.findIndex(x => x.ch === c); let last = -1; STEPS.forEach((x, k) => { if (x.ch === c) last = k; });
+  if (first < 0 || !CHINFO[c]) continue;
+  STEPS.splice(last + 1, 0, { ch: c, fn: '本章小結', kind: 'sum', stop: true, t: '這一章做完了。哪一步還不清楚，點它回去重看；都懂了，按「下一章」。', run: async () => chapOv('sum', c) });
+  STEPS.splice(first, 0, { ch: c, fn: '章節介紹', kind: 'intro', t: '先看這一章要學什麼、學了可以用在哪裡。', run: async () => chapOv('intro', c) });
+}
+async function chapOv(kind, c) {
+  const o = $('#ovChap'), idx = STEPS.map((x, k) => [x, k]).filter(([x]) => x.ch === c && !x.kind);
+  if (kind === 'intro') o.innerHTML = `<div class="cno">第 ${c + 1} 章</div><h2>${esc(CH[c])}</h2><div class="crow"><b>🧠 AI 知能</b><span>${esc(CHINFO[c][0])}</span></div><div class="crow"><b>🎯 用途</b><span>${esc(CHINFO[c][1])}</span></div><div class="tags">${idx.map(([x], n) => `<span>${n + 1}. ${esc(x.fn)}</span>`).join('')}</div>`;
+  else { const nx = STEPS.findIndex(x => x.ch === c + 1);
+    o.innerHTML = `<div class="cno">第 ${c + 1} 章・小結</div><h2>${esc(CH[c])}</h2><div class="sgrid">${idx.map(([x, k], n) => `<button class="sj" type="button" data-act="jump" data-i="${k}">${n + 1}. ${esc(x.fn)}</button>`).join('')}</div>
+      <div class="snext"><button class="btn" type="button" data-act="jump" data-i="${STEPS.findIndex(x => x.ch === c)}">↺ 重看本章</button>${nx >= 0 ? `<button class="btn pri" type="button" data-act="nextch" data-i="${nx}">下一章：${esc(CH[c + 1])} ▶</button>` : ''}</div>`; }
+  o.classList.add('on');
+}
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
 /* ── 引擎（沿用 F-UI-032／F-UI-034；換課通常不用改） ─────────── */
-let cur = 0, runId = 0, busy = false, FAST = false, HURRY = false, playing = false, auto = true, guided = true, timer = 0;
+let cur = 0, lastDone = -1, runId = 0, busy = false, FAST = false, HURRY = false, playing = false, auto = true, guided = true, timer = 0;
+let FOCUS = null, FOCI = [];
 const CANCEL = {};
 const wait = ms => { const t = runId; if (FAST || HURRY) return t === runId ? Promise.resolve() : Promise.reject(CANCEL);
   return new Promise((ok, no) => setTimeout(() => (t === runId ? ok() : no(CANCEL)), ms)); };
-const q = t => /^[\w一-鿿][\w\-一-鿿.]*$/.test(t) ? document.querySelector('[data-t="' + t + '"]') : document.querySelector(t);
-function box(el) { const a = el.getBoundingClientRect(), b = document.getElementById('stage').getBoundingClientRect(); return { x: a.left - b.left, y: a.top - b.top, w: a.width, h: a.height }; }
-async function point(t) {
-  const el = q(t); if (!el) throw new Error('找不到目標：' + t);
-  el.scrollIntoView({ block: 'nearest' });
-  const c = document.getElementById('cursor'), r = box(el);
-  c.style.left = (r.x + r.w / 2) + 'px'; c.style.top = (r.y + r.h / 2) + 'px';
-  await wait(500);
-  return el;
-}
-async function tap(t) {
-  const el = await point(t);
-  const c = document.getElementById('cursor'); c.classList.remove('click'); void c.offsetWidth; c.classList.add('click');
-  const a = el.dataset.act; if (a && ACT[a]) ACT[a](el);
-  render(); await wait(450);
-}
-async function typeIn(set, text) {
-  if (FAST || HURRY) { set(text); render(); return; }
-  const n = Math.max(1, Math.ceil(text.length / 40));
-  for (let i = n; i < text.length + n; i += n) { set(text.slice(0, i)); render(); await wait(30); }
-}
-async function spot(t, label) {
-  const el = q(t); if (!el) throw new Error('找不到目標：' + t);
-  const s = document.getElementById('spot'), r = box(el);
-  Object.assign(s.style, { display: 'block', left: (r.x - 6) + 'px', top: (r.y - 6) + 'px', width: (r.w + 12) + 'px', height: (r.h + 12) + 'px' });
-  s.querySelector('span').textContent = label || '';
-  await wait(1200);
-}
-function unspot() { document.getElementById('spot').style.display = 'none'; }
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1600); }
+const q = t => typeof t !== 'string' ? t : /^[\w一-鿿][\w\-一-鿿.]*$/.test(t) ? $('[data-t="' + t + '"]') : $(t);
+/* 說明卡：避開這一步碰過的所有地方（眼前目標加權），沒擋到就不動，不掉出視窗（K-VIS-005） */
+function placeCard(force) { const c = $('#capcard'); if (document.body.classList.contains('kitview')) return;
+  const st = $('#stage').getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, m = 16;
+  const box = R => ({ l: R.left - 28, t: R.top - 28, r: R.right + 28, b: R.bottom + 28 });
+  const ov1 = ([x, y], f) => Math.max(0, Math.min(x + w, f.r) - Math.max(x, f.l)) * Math.max(0, Math.min(y + h, f.b) - Math.max(y, f.t));
+  const score = p => (FOCUS ? 3 * ov1(p, box(FOCUS)) : 0) + FOCI.slice(-8).reduce((a, R) => a + ov1(p, box(R)), 0);
+  const now = [parseFloat(c.style.left), parseFloat(c.style.top)];
+  if (!force && !isNaN(now[0]) && score(now) === 0) return;
+  const cands = [[st.right - w - m, st.bottom - h - m], [st.left + m, st.bottom - h - m], [st.right - w - m, st.top + m], [st.left + m, st.top + m]];
+  let best = cands[0], bs = Infinity; for (const p of cands) { const sc = score(p); if (sc < bs - 1) { bs = sc; best = p; } }
+  c.style.left = Math.max(8, best[0]) + 'px'; c.style.top = Math.max(st.top + 4, Math.min(innerHeight - h - 8, best[1])) + 'px'; }
+function clampCard() { const c = $('#capcard'), r = c.getBoundingClientRect(); if (r.height && r.bottom > innerHeight - 8) c.style.top = Math.max(8, innerHeight - r.height - 8) + 'px'; }
+async function point(t) { const el = q(t); if (!el) throw new Error('找不到目標：' + t); if (FAST || HURRY) return el;
+  el.scrollIntoView({ block: 'nearest' }); const r = el.getBoundingClientRect(); FOCUS = r; FOCI.push(r); placeCard();
+  $('#cursor').style.transform = `translate(${r.left + Math.min(r.width / 2, 60)}px,${r.top + r.height * .55}px)`; await wait(820); return el; }
+async function tap(t) { const el = await point(t); const a = el.dataset.act; if (a && ACT[a]) ACT[a](el); render(); await wait(520); }
+async function typeIn(set, text) { if (FAST || HURRY) { set(text); render(); return; }
+  const n = Math.max(1, Math.ceil(text.length / 40)); for (let i = n; i < text.length + n; i += n) { set(text.slice(0, i)); render(); await wait(30); } }
+async function spot(t, label) { if (FAST) return; const el = q(t); if (!el) throw new Error('找不到目標：' + t);
+  const s = $('#spot'), r = el.getBoundingClientRect();
+  Object.assign(s.style, { display: 'block', left: (r.left - 6) + 'px', top: (r.top - 6) + 'px', width: (r.width + 12) + 'px', height: (r.height + 12) + 'px' });
+  s.querySelector('span').textContent = label || ''; FOCUS = r; FOCI.push(r); placeCard(); await wait(1200); }
+function unspot() { const s = $('#spot'); s.style.display = 'none'; s.classList.remove('must'); }
+/* 「⚠ 一定要」：放大小目標、橘框、停夠久；全課同一種長相 */
+async function must(t, label, hold = 2000) { if (FAST) return; const el = q(t);
+  $('#capMust').textContent = '⚠ 一定要：' + label; $('#capcard').classList.add('hasmust'); clampCard(); if (HURRY) return;
+  const r = el.getBoundingClientRect(), small = r.width < 360 && r.height < 120; if (small) el.classList.add('zoomfx');
+  try { await point(el); await spot(el, '⚠ 一定要｜' + label); $('#spot').classList.add('must'); await wait(hold); } finally { el.classList.remove('zoomfx'); } unspot(); }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1600); }
 
-function syncCtl() {
-  document.getElementById('playBtn').textContent = playing ? '⏸ 暫停' : '▶ 播放';
-  document.getElementById('autoBtn').textContent = '自動換頁：' + (auto ? '開' : '關');
-}
+function syncCtl() { $('#playBtn').textContent = playing ? '⏸ 暫停' : '▶ 播放'; $('#autoBtn').textContent = '自動換頁：' + (auto ? '開' : '關'); }
 function paintNav() {
-  document.querySelectorAll('#chaps .chip').forEach((b, i) => b.classList.toggle('on', i === STEPS[cur].ch));
-  document.querySelectorAll('#nodes .node').forEach((b, i) => { b.classList.toggle('on', i === cur); b.classList.toggle('done', i < cur); });
   const s = STEPS[cur];
-  document.getElementById('capT').innerHTML = '';
-  const fn = document.createElement('span'); fn.className = 'fn'; fn.textContent = '第 ' + (cur + 1) + ' 步｜' + CH[s.ch] + '｜' + s.fn;
-  document.getElementById('capT').append(fn, document.createTextNode(s.t));
-  const tn = document.getElementById('tipnote');
-  tn.style.display = s.tip ? 'block' : 'none'; tn.innerHTML = s.tip ? '<b>常見錯誤</b>　' : ''; if (s.tip) tn.append(document.createTextNode(s.tip));
-  history.replaceState(null, '', '#s=' + cur);
+  document.querySelectorAll('#chaps .chip').forEach((b, i) => b.classList.toggle('on', i === s.ch));
+  $('#nodes').innerHTML = STEPS.map((x, i) => [x, i]).filter(([x]) => x.ch === s.ch).map(([x, i], n) =>
+    `<button class="node ${x.kind ? 'k' : ''} ${i === cur ? 'on' : i < cur ? 'done' : ''}" type="button" data-i="${i}">${n + 1} ${esc(x.fn)}</button>`).join('');
+  $('#capK').textContent = '第 ' + (cur + 1) + ' 步｜' + CH[s.ch] + '｜' + s.fn; $('#capT').textContent = s.t;
+  $('#capTip').textContent = s.tip ? '📌 ' + s.tip : ''; $('#capMust').textContent = ''; $('#capcard').classList.remove('hasmust');
+  $('#capParts').innerHTML = (PARTS[s.fn] || []).map(id => `<div class="pt"><b>🧩 ${esc($('#' + id).closest('.k').querySelector('h3').textContent)}</b><button type="button" data-act="copy" data-src="${id}">📋 複製</button></div>`).join('');
+  FOCUS = null; FOCI = []; placeCard(true);
+  history.replaceState(null, '', '#s=' + (cur + 1));
 }
 async function goto(i) {
-  clearTimeout(timer); runId++; const my = runId;
-  i = Math.max(0, Math.min(STEPS.length - 1, i));
-  seed(); unspot(); render(); guided = true;
-  FAST = true;
-  try { for (let k = 0; k < i; k++) { await STEPS[k].run(); unspot(); } } catch (e) { if (e !== CANCEL) throw e; FAST = false; return; }
-  FAST = false; HURRY = false; cur = i; paintNav(); busy = true;
+  clearTimeout(timer); runId++; const my = runId; i = Math.max(0, Math.min(STEPS.length - 1, i));
+  seed(); unspot(); $('#ovChap').classList.remove('on'); render(); guided = true; FAST = true;
+  try { for (let k = 0; k < i; k++) { $('#ovChap').classList.remove('on'); await STEPS[k].run(); unspot(); } } catch (e) { if (e !== CANCEL) throw e; FAST = false; return; }
+  FAST = false; HURRY = false; cur = i; paintNav(); $('#ovChap').classList.remove('on'); busy = true;
   try { await STEPS[i].run(); } catch (e) { if (e !== CANCEL) { console.error(e); toast('這一步播放失敗：' + e.message); } }
-  if (my !== runId) return;
-  busy = false; HURRY = false;
-  if (playing && auto && cur < STEPS.length - 1) {
-    timer = setTimeout(() => goto(cur + 1), Math.max(4500, STEPS[cur].t.length * 125));
-  } else if (cur === STEPS.length - 1) { playing = false; syncCtl(); }
+  if (my !== runId) return; busy = false; HURRY = false; lastDone = i;
+  if (STEPS[i].stop) { playing = false; syncCtl(); }
+  if (playing && auto && i < STEPS.length - 1) timer = setTimeout(() => goto(i + 1), Math.max(5200, STEPS[i].t.length * 135));
+  else if (i === STEPS.length - 1) { playing = false; syncCtl(); }
 }
-function next() {
-  if (busy) { HURRY = true; toast('⏩ 加速'); return; }
-  if (cur < STEPS.length - 1) { toast('⏭ 下一步'); goto(cur + 1); }
-}
-function userTook() {
-  if (!guided) return;
-  clearTimeout(timer); runId++; busy = false; guided = false; playing = false; syncCtl(); unspot();
-  toast('已切到自由操作，點下方任一步驟回到導覽');
-}
+function next() { if (busy) { HURRY = true; toast('⏩ 加速'); return; } if (cur < STEPS.length - 1) { toast('⏭ 下一步'); goto(cur + 1); } }
+function userTook() { if (!guided) return; clearTimeout(timer); runId++; busy = false; guided = false; playing = false; syncCtl(); unspot(); toast('已切到自由操作，點步驟回到示範'); }
 
-/* 章節膠囊、步驟節點、大綱：全由 STEPS 產生 */
-CH.forEach((name, c) => {
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = name;
-  b.addEventListener('click', () => goto(STEPS.findIndex(s => s.ch === c)));
-  document.getElementById('chaps').append(b);
-});
-STEPS.forEach((s, i) => {
-  const b = document.createElement('button'); b.type = 'button'; b.className = 'node'; b.textContent = i + 1; b.title = s.fn;
-  b.setAttribute('aria-label', '第 ' + (i + 1) + ' 步：' + s.fn);
-  b.addEventListener('click', () => goto(i));
-  document.getElementById('nodes').append(b);
-});
-document.getElementById('outline').innerHTML = '';
-STEPS.forEach((s, i) => { const li = document.createElement('li'); li.textContent = CH[s.ch] + '｜' + s.fn; document.getElementById('outline').append(li); });
+CH.forEach((name, c) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = name;
+  b.addEventListener('click', () => goto(STEPS.findIndex(s => s.ch === c))); $('#chaps').append(b); });
+$('#nodes').addEventListener('click', e => { const b = e.target.closest('.node'); if (b) goto(+b.dataset.i); });
+$('#outline').innerHTML = ''; STEPS.filter(s => !s.kind).forEach(s => { const li = document.createElement('li'); li.textContent = CH[s.ch] + '｜' + s.fn; $('#outline').append(li); });
 
-/* 事件委派：真點擊擬真畫面 → 切自由操作，結果與導覽一致 */
+/* 事件委派：真點擊擬真畫面 → 切自由操作；章節頁的按鈕不算 */
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-act]'); if (!el) return;
-  const a = el.dataset.act;
+  const el = e.target.closest('[data-act]'); if (!el) return; const a = el.dataset.act;
   if (!UI_ACTS.has(a)) { if (!e.isTrusted) return; userTook(); }
-  ACT[a](el); if (!UI_ACTS.has(a)) render();
+  USER = e.isTrusted; try { ACT[a](el); } finally { USER = false; } if (!UI_ACTS.has(a)) render();
 });
 document.addEventListener('keydown', e => {
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); goto(cur - 1); }
-  else if (e.key === ' ') { e.preventDefault(); ACT.play(); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); next(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); goto(cur - 1); } else if (e.key === ' ') { e.preventDefault(); ACT.play(); }
 });
-document.getElementById('stage').addEventListener('contextmenu', e => {
-  if (!guided || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  e.preventDefault(); next();
-});
+$('#stage').addEventListener('contextmenu', e => { if (!guided || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return; e.preventDefault(); next(); });
+addEventListener('resize', () => { unspot(); placeCard(true); });
+new ResizeObserver(clampCard).observe($('#capcard'));
 
 /* 浮水印：取署名字樣畫成斜向 SVG */
 (function () {
-  const txt = document.querySelector('.wmbadge').textContent + '｜' + document.querySelector('.brand b').textContent;
+  const txt = $('.wmbadge').textContent + '｜' + $('.brand b').textContent;
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="420" height="240"><text x="20" y="150" transform="rotate(-24 210 120)" font-size="22" font-family="sans-serif" fill="#000">' + txt.replace(/[<&]/g, '') + '</text></svg>';
-  document.getElementById('wm').style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
+  $('#wm').style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
 })();
 
 seed(); render(); syncCtl();
 const m = location.hash.match(/s=(\d+)/);
-goto(m ? Number(m[1]) : 0);
-addEventListener('hashchange', () => { const h = location.hash.match(/s=(\d+)/); if (h && Number(h[1]) !== cur) goto(Number(h[1])); });
-window.__demo = { goto, STEPS, S };
+goto(m ? Number(m[1]) - 1 : 0);
+addEventListener('hashchange', () => { const h = location.hash.match(/s=(\d+)/); if (h && Number(h[1]) - 1 !== cur) goto(Number(h[1]) - 1); });
+window.__demo = { goto, STEPS, S, get state() { return { cur, lastDone, playing }; } };
 </script>
 </body>
 </html>

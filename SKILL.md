@@ -124,7 +124,7 @@ description: 使用者的軟體與網頁工作作業系統，核心是「HTML �
 
 **產 A 或正式施工之前先回頭讀 C／B 的回覆檔**，不要問第二次同樣的事。
 
-**軌道 A 的變體｜課程互動教學**：觀眾換成學生、目標換成「學生回真平台照做會成功」。章節分頁＋步驟節點直達、照上課順序播放、學生公版程式碼一鍵複製且在真平台實跑過。指引 `references/course-tutorial.md`，骨架 `assets/course-tutorial-template.html`，詳見第六之三節。
+**軌道 A 的變體｜課程互動教學**：觀眾換成學生、目標換成「學生回真平台照做會成功」。章節分頁＋步驟節點直達、每章介紹與小結、照上課順序播放、說明浮在畫面上、零件跟著步驟出現、學生公版程式碼在真平台實跑過。指引 `references/course-tutorial.md`，骨架 `assets/course-tutorial-template.html`，詳見第六之三節。
 
 ### 軌道 C 的狀態鐵律
 
@@ -297,7 +297,8 @@ python "$skill\scripts\capture_learning.py" "短標題" "教訓內容"
 
 - **觸發**：使用者在準備或剛處理完**課程、講義、教學示範、上課操作步驟、工作坊、講座**，且內容是「教別人在某個平台一步一步做出東西」。
 - **主動提醒**：他處理課程、講義、教講相關事宜（整理逐字稿、做講義、做投影片、上完課歸檔）時，若還沒有互動教學版，**在回覆最後用一句話提醒**：「這堂課也可以做成學生能自己重看、照貼就能跑的互動教學 HTML（html-first-workflow 第六之三節）。」每個課程只提一次；他說不用就不再提。
-- **做法**：照 `references/course-tutorial.md` 的七步製程；骨架 `assets/course-tutorial-template.html`；完整實作的說明在 `library/components/F-UI-034_課程互動教學HTML/說明.md`，程式碼在本機軟體資料庫 F-UI-034。
+- **版面（負責人 2026-10-25 核定）**：示範畫面佔滿、說明浮在畫面上不放底部、零件在用到的那一步出現、「⚠ 一定要」同一種長相、每章大字介紹＋本章小結（播放停在小結）。細節在 `references/course-tutorial.md`「版面與節奏」。
+- **做法**：照 `references/course-tutorial.md` 的九步製程（含逐字稿強調處對照與獨立冷測）；骨架 `assets/course-tutorial-template.html`；完整實作的說明在 `library/components/F-UI-034_課程互動教學HTML/說明.md`，程式碼在本機軟體資料庫 F-UI-034。
 - **兩條不能省**：學生要貼的程式碼與公式，交付前在真平台從零實跑一次（K-VER-025）；擬真畫面的文字照真平台抄，不憑記憶。
 
 ## 七、設計原則
